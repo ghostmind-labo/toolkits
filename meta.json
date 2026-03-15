@@ -1,0 +1,43 @@
+{
+  "id": "H8eW8uubGfEY",
+  "name": "toolkits",
+  "type": "app",
+  "routines": {
+    "init_tmux": "run tmux init docs",
+    "attach_tmux": "run tmux attach docs",
+    "terminate_tmux": "run tmux terminate docs",
+    "claude_marketplace_add": "claude plugin marketplace add ./",
+    "claude_marketplace_add_remote": "claude plugin marketplace add ghostmind-labo/toolkits",
+    "claude_skill_link_places": "ln -sfn ../../plugins/places/skills/places .claude/skills",
+    "claude_skill_unlink-places": "rm -f .claude/skills/places"
+  },
+  "tmux": {
+    "sessions": [
+      {
+        "name": "toolkits",
+        "windows": [
+          {
+            "name": "claude",
+            "layout": "compact",
+            "compact": {
+              "type": "single",
+              "panes": {
+                "main": "Claude"
+              }
+            }
+          },
+          {
+            "name": "shell",
+            "layout": "compact",
+            "compact": {
+              "type": "single",
+              "panes": {
+                "main": "$SHELL"
+              }
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

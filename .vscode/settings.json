@@ -1,0 +1,26 @@
+{
+  "files.exclude": {
+    "**/dev": true,
+    "**/.devcontainer": true,
+    "**/.gitignore": true,
+    "**/.git": true,
+    "**/.terraform": true,
+    "**/.tfstate": true,
+    "**/.npmrc": true,
+    "**/.dockerignore": true,
+    "**/package-lock.json": true,
+    "**/node_modules": true,
+    "**/__pycache__": true,
+    "**/.next": true,
+    "**/dist": true,
+    "**/.terraform.lock.hcl": true,
+    "**/.npmignore": true,
+    "**/.history": true
+  },
+  "deno.disablePaths": [],
+  "workbench.colorCustomizations": {
+    "gitDecoration.ignoredResourceForeground": "#482c7d"
+  },
+  "peacock.remoteColor": "#42b883",
+  "deno.enable": true
+}

@@ -1,0 +1,8 @@
+{
+  "name": "places",
+  "description": "Find places, get details, and search for nearby places using search engine, such as the Google Places API",
+  "version": "0.0.1",
+  "author": {
+    "name": "ghostmind-dev"
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "name": "ghostmind-toolkit",
+  "owner": {
+    "name": "ghostmind-dev"
+  },
+  "plugins": [
+    {
+      "name": "places",
+      "source": "./plugins/places",
+      "description": "Find places, get details, and search for nearby places using search engine, such as the Google Places API"
+    }
+  ]
+}
