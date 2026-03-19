@@ -8,8 +8,12 @@
     "terminate_tmux": "run tmux terminate docs",
     "claude_marketplace_add": "claude plugin marketplace add ./",
     "claude_marketplace_add_remote": "claude plugin marketplace add ghostmind-labo/toolkits",
+    // PLACES
     "claude_skill_link_places": "ln -sfn ../../plugins/places/skills/places .claude/skills",
-    "claude_skill_unlink-places": "rm -f .claude/skills/places"
+    "claude_skill_unlink_places": "rm -f .claude/skills/places",
+    // POTION
+    "claude_skill_link_potion": "ln -sfn ../plugins/notes/commands .claude",
+    "claude_skill_unlink_potion": "rm -f .claude/commands"
   },
   "tmux": {
     "sessions": [
