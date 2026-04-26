@@ -3,17 +3,11 @@
   "name": "toolkits",
   "type": "app",
   "routines": {
-    "init_tmux": "run tmux init docs",
-    "attach_tmux": "run tmux attach docs",
-    "terminate_tmux": "run tmux terminate docs",
+    "init_tmux": "run tmux init toolkits",
+    "attach_tmux": "run tmux attach toolkits",
+    "terminate_tmux": "run tmux terminate toolkits",
     "claude_marketplace_add": "claude plugin marketplace add ./",
-    "claude_marketplace_add_remote": "claude plugin marketplace add ghostmind-labo/toolkits",
-    // PLACES
-    "claude_skill_link_places": "ln -sfn ../../plugins/places/skills/places .claude/skills",
-    "claude_skill_unlink_places": "rm -f .claude/skills/places",
-    // POTION
-    "claude_skill_link_potion": "ln -sfn ../plugins/notes/commands .claude",
-    "claude_skill_unlink_potion": "rm -f .claude/commands"
+    "claude_marketplace_add_remote": "claude plugin marketplace add ghostmind-labo/toolkits"
   },
   "tmux": {
     "sessions": [

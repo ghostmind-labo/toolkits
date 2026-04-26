@@ -1,5 +1,5 @@
 {
-  "name": "ghostmind-toolkit",
+  "name": "ghostmind-toolkits",
   "owner": {
     "name": "ghostmind-dev"
   },
@@ -7,12 +7,7 @@
     {
       "name": "places",
       "source": "./plugins/places",
-      "description": "City exploration coordinator — find places, get directions with transit, compare distances, geocode addresses, and more using Google Maps APIs"
-    },
-    {
-      "name": "notes",
-      "source": "./plugins/notes",
-      "description": "Plugin to take better notes for the Potion note-taking app"
+      "description": "City explsration coordinator — find places, get directions with transit, compare distances, geocode addresses, and more using Google Maps APIs"
     }
   ]
 }
