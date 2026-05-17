@@ -1,5 +1,5 @@
 {
-  "name": "ghostmind-places",
+  "name": "places",
   "description": "City exploration coordinator — find places, get directions with transit, compare distances, geocode addresses, and more using Google Maps APIs",
   "version": "0.1.1",
   "author": {
