@@ -1,0 +1,93 @@
+# Wiki Schema — {{SUBJECT}}
+
+This document is the operating contract for the wiki. Any LLM working in this vault should read it first.
+
+The schema is intentionally short. As the wiki grows, refine it — but resist baking in rules before there is real evidence they help.
+
+## Subject scope
+
+**Subject:** {{SUBJECT}}
+
+This wiki covers {{SUBJECT}} and any sub-topic the user explores under it. The subject can be broad (it has many sub-subjects), but the wiki is *not* a general-purpose knowledge base. If a source or question falls outside the subject, say so rather than filing it.
+
+## Layout
+
+```
+sources/   raw inputs, read-only
+pages/     wiki pages, markdown with [[wikilinks]]
+meta/      this schema and any future config
+index.md   catalog of all pages
+log.md     append-only changelog
+```
+
+## Page shape
+
+Every page in `pages/` follows the same shape:
+
+```markdown
+# Page Title
+
+One-paragraph summary. Plain English. No more than 4-5 sentences.
+
+## [Section heading]
+
+Body content. Cross-reference other pages with `[[Page Title]]`.
+
+## Sources
+
+- [[source-filename]] — short note on what was used from it
+- [[source-filename]] — ...
+
+## See also
+
+- [[Related Page 1]]
+- [[Related Page 2]]
+```
+
+Page filenames are kebab-case, no extension shown in links: `pages/edo-period-economy.md` → `[[edo-period-economy]]` or `[[Edo Period Economy]]` (Obsidian resolves both).
+
+## Three operations
+
+### 1. Ingest
+
+When a new file appears in `sources/`:
+
+1. Read the source.
+2. Extract the key claims, names, dates, and concepts.
+3. For each, decide: does an existing page cover it? If yes, edit. If no and the topic warrants a page, create.
+4. Update `index.md` with any new pages.
+5. Append a `log.md` entry describing what was ingested and which pages changed.
+
+Aim for **10-15 page touches per ingest** as a rough ceiling — if a source seems to touch more, the wiki is probably underdeveloped and that's fine; if it seems to touch fewer than 2, the source may be marginal to the subject.
+
+### 2. Query
+
+When the user asks a question:
+
+1. Search `pages/` for relevant pages (filename, headings, body).
+2. Synthesize an answer from those pages — cite which pages were used.
+3. If the answer required reasoning not yet in the wiki, ask whether to file it back as a page edit or new page.
+
+### 3. Lint
+
+A periodic health check:
+
+- **Contradictions:** pages making opposing claims about the same fact.
+- **Stale claims:** assertions that no longer match newer sources.
+- **Orphans:** pages with no incoming `[[wikilinks]]`.
+- **Dangling links:** `[[wikilinks]]` pointing to non-existent pages.
+- **Missing cross-references:** pages that clearly relate but don't link to each other.
+
+Report findings, propose fixes, apply only what the user approves. Append a `log.md` entry for any fixes made.
+
+## Conventions
+
+- **Wikilinks:** use Obsidian `[[Page Title]]` syntax for all inline references between pages. This is the *only* link style — no `[markdown](paths.md)` links between pages. The reason: Obsidian's graph view, backlinks pane, and unresolved-link surfacing all key off this syntax. Mixing styles silently breaks them.
+- **Dates:** ISO format, `YYYY-MM-DD`.
+- **Naming:** page filenames are kebab-case. Page titles inside the file are title case. Obsidian resolves both `[[edo-period-economy]]` and `[[Edo Period Economy]]` to the same file.
+- **No fabrication:** if a fact has no source in `sources/`, mark it `_(no source yet)_` and surface it in the next lint.
+- **Append-only `log.md`:** never rewrite history. New entries at the bottom.
+
+## What this schema is not
+
+It is not a fixed taxonomy of pages. The wiki's structure should emerge from real ingests, not from a pre-baked outline. The user can always edit this schema as patterns stabilize.

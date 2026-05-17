@@ -1,0 +1,26 @@
+# {{SUBJECT}} — Obsidian Wiki
+
+This is a personal, LLM-maintained wiki focused on **{{SUBJECT}}**, built as an Obsidian vault. It is meant to grow over time as sources are ingested and questions are asked.
+
+## How it works
+
+- **`sources/`** — raw inputs go here, untouched. Articles, PDFs, transcripts, notes, dumps. Treat as read-only.
+- **`pages/`** — the wiki itself. Markdown pages interlinked with Obsidian `[[wikilinks]]`. This is what an LLM maintains.
+- **`meta/SCHEMA.md`** — the operating rules. How pages are shaped, how ingest/query/lint work, what conventions to follow. Read this before letting an LLM modify the wiki.
+- **`index.md`** — catalog of every page, organized by category. Updated on every ingest.
+- **`log.md`** — append-only changelog. Every ingest, edit, or lint pass adds an entry.
+
+## Opening in Obsidian
+
+This folder is the Obsidian vault root (or, if linked into an existing vault, a folder inside one).
+
+- **Standalone vault**: open Obsidian → File → Open vault → choose this folder.
+- **Inside an existing vault**: the folder already shows up in the existing vault's file tree — no extra action needed.
+
+Either way, Obsidian's wikilinks, backlinks pane, unresolved-link indicators, and graph view are the way the wiki is navigated and kept honest.
+
+## Working with an LLM
+
+Point the LLM at this folder and tell it to read `meta/SCHEMA.md` first. The schema is the configuration — it defines how the LLM should ingest sources, answer queries, and lint the wiki for problems.
+
+Bootstrapped on {{DATE}}.

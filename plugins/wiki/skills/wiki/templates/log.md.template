@@ -1,0 +1,9 @@
+# Changelog — {{SUBJECT}}
+
+Append-only record of every change to the wiki. Newest entries at the bottom. Each entry: date, operation (ingest/edit/lint), one-line summary, optional list of affected pages.
+
+---
+
+## {{DATE}}
+
+- **bootstrap** — wiki created. Subject: **{{SUBJECT}}**. Structure initialized: `sources/`, `pages/`, `meta/SCHEMA.md`, `index.md`, `log.md`.

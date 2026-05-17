@@ -1,0 +1,8 @@
+{
+  "name": "wiki",
+  "description": "Bootstrap a personal LLM-maintained wiki as an Obsidian vault — three folders, an index, a changelog, and a schema. Built around Obsidian's wikilinks and graph view.",
+  "version": "0.1.0",
+  "author": {
+    "name": "ghostmind-dev"
+  }
+}
