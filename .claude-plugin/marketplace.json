@@ -13,6 +13,11 @@
       "name": "wiki",
       "source": "./plugins/wiki",
       "description": "Bootstrap a personal, LLM-maintained wiki for a single subject as an Obsidian vault — three folders, an index, a changelog, and a schema. Structure-only; no content is invented."
+    },
+    {
+      "name": "git",
+      "source": "./plugins/git",
+      "description": "Solo-dev git shipping workflow — /git:ship stages everything, auto-writes a commit message from the diff, pushes the current branch, opens a PR into main, and auto-merges it. Refuses to run on main."
     }
   ]
 }
