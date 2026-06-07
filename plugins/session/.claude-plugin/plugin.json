@@ -1,0 +1,8 @@
+{
+  "name": "session",
+  "description": "Session quality-of-life enhancements for Claude Code. Plays a gentle, joyful chime whenever Claude is waiting for your input, so you can step away and know the moment your attention is needed.",
+  "version": "0.1.0",
+  "author": {
+    "name": "ghostmind-dev"
+  }
+}

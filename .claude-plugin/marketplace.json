@@ -23,6 +23,11 @@
       "name": "postgres",
       "source": "./plugins/postgres",
       "description": "PostgreSQL management coordinator — list and inspect databases, run guarded SQL queries, and copy/clone databases and tables using psql, pg_dump, and createdb with your PG* environment variables. Read and copy only: destructive operations are blocked and require double confirmation."
+    },
+    {
+      "name": "session",
+      "source": "./plugins/session",
+      "description": "Session quality-of-life enhancements — plays a gentle, joyful chime via the Notification hook whenever Claude is waiting for your input, so you can step away and know when your attention is needed. Cross-platform with a bundled sound."
     }
   ]
 }

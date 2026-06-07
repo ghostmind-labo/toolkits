@@ -1,0 +1,17 @@
+{
+  "description": "Play a gentle chime when Claude is waiting for the user's input.",
+  "hooks": {
+    "Notification": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/play-sound.sh",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}
