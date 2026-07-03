@@ -1,150 +1,97 @@
 ---
 name: wiki
 description: >-
-  Bootstrap a personal, LLM-maintained wiki for a single subject (and its sub-subjects) as a
-  ready-to-use Obsidian vault. The wiki is built around Obsidian — its [[wikilinks]], backlinks,
-  and graph view are the interlinking system, not an afterthought. Use this skill whenever the
-  user says things like "create a wiki", "start a wiki on X", "bootstrap a knowledge base",
-  "set up a wiki for [topic]", "make me an Obsidian vault for X", "scaffold a wiki structure",
-  or expresses interest in building a durable, growing notes system around one subject (with
-  broad sub-topics) rather than capturing one-off notes. This skill only creates the structure
-  — folders, an index, a changelog, and a schema document — never content. Also use when the
-  user references Karpathy's LLM-wiki pattern or wants a "three-folder wiki".
+  Construct, operate, or improve a personal LLM-maintained wiki ("second brain") built as an
+  Obsidian vault, following Karpathy's LLM-wiki pattern (sources → wiki pages → schema). This
+  skill should be used when the user asks to "create a wiki", "start a wiki on X", "bootstrap
+  a knowledge base", "make me an Obsidian vault for X", "build a second brain", "ingest this
+  source / article / PDF into my wiki", "ask my wiki", "lint my wiki", "check my wiki's health",
+  "audit my second brain", "improve my vault", "upgrade my notes to the Karpathy pattern", or
+  "turn my existing notes into a second brain". Covers the full lifecycle: creating a new vault,
+  running ingest/query/lint operations inside one, and retrofitting the pattern onto an existing
+  vault or notes folder.
 ---
 
-# Wiki — Obsidian Vault Bootstrapper
+# Wiki — LLM-Maintained Second Brain (Obsidian)
 
-This skill scaffolds an empty Obsidian vault for a single subject. The wiki is meant to grow over time as the user feeds in sources and asks questions — but at bootstrap time, only the structure exists. No content is invented.
+This skill makes an AI agent a competent maintainer of a personal wiki built on Andrej Karpathy's LLM-wiki pattern: a three-layer system where **raw sources** (immutable inputs) are compiled into a **wiki** (interlinked markdown pages the LLM owns) governed by a **schema** (the operating contract). The human sources documents and asks questions; the LLM does all the bookkeeping — summarizing, cross-referencing, reconciling, linting. The wiki is a persistent, compounding artifact: cross-references are already there, contradictions already flagged, synthesis already reflects everything read.
 
-The wiki is **Obsidian-native**: the interlinking that makes it a wiki — not a flat pile of notes — is Obsidian's `[[wikilink]]` syntax and the graph it produces. Backlinks, unresolved-link surfacing, and graph view are the discovery mechanism. Outside Obsidian the files are still plain markdown, but the system is designed to be opened and worked in inside Obsidian.
-
-The pattern is adapted from Andrej Karpathy's LLM-wiki gist, kept deliberately minimal so iteration can refine it:
+The canonical layout:
 
 ```
 <subject>/
 ├── README.md          # what this wiki is, how to use it
 ├── index.md           # catalog of every page, organized by category
-├── log.md             # append-only changelog of every ingest/edit
-├── sources/           # raw inputs (PDFs, articles, transcripts, dumps)
-├── pages/             # the wiki itself — markdown pages with [[wikilinks]]
+├── log.md             # append-only changelog: ## [YYYY-MM-DD] op | summary
+├── sources/           # raw inputs, read-only (PDFs, articles, transcripts)
+├── pages/             # the wiki — markdown pages with [[wikilinks]]
 └── meta/
     └── SCHEMA.md      # operating rules: conventions, page shape, workflows
 ```
 
-Three folders, three top-level files. That's it.
+Obsidian is the runtime: `[[wikilinks]]` are the only link style between pages, and backlinks, unresolved-link surfacing, and graph view are the discovery and honesty mechanisms. Outside Obsidian the files are still plain markdown.
 
-## When invoked
+## Choosing the mode
 
-Treat the invocation as a request to **initialize a new wiki**, not to populate one. The user's job is to provide the subject and a destination. This skill's job is to produce a vault they can immediately open in Obsidian and start filling.
+Determine which of three modes the request calls for:
 
-## Inputs needed
+| Mode | When | Reference |
+|------|------|-----------|
+| **Bootstrap** | No wiki exists yet; user wants to start one for a subject | `references/bootstrap.md` |
+| **Operate** | A wiki exists; user wants to ingest a source, ask a question, or run a health check | `references/operations.md` |
+| **Audit & upgrade** | User has an existing vault/notes system (this pattern or not) and wants it assessed or improved | `references/audit.md` |
 
-Three things must be settled before creating anything:
+Detection rules:
 
-1. **Subject** — a short, specific topic. Examples: "Edo period Japan", "Postgres internals", "Tarot history", "Personal finance basics". If the user gave a subject in their message, use it. If not, ask once.
+- Mentions of creating, starting, or scaffolding → **Bootstrap**.
+- A `meta/SCHEMA.md` (or `CLAUDE.md` acting as schema) exists in the target folder, and the request is about content → **Operate**.
+- The user points at pre-existing notes — an Obsidian vault, a folder of markdown, a PARA or Zettelkasten setup — and asks to improve, restructure, assess, or "make it a second brain" → **Audit & upgrade**.
+- Ambiguous ("set up my second brain" over a folder that already has notes) → look at the folder first; if it has real content, treat as audit, not bootstrap. Never scaffold on top of existing notes without an audit.
 
-2. **Vault mode** — one of:
-   - **New vault** *(default, recommended)* — the wiki folder *is* the Obsidian vault. The user opens this folder directly in Obsidian. One subject = one vault. Cleanest separation, no collision with other notes.
-   - **Inside an existing vault** — the wiki folder is created as a subfolder of an Obsidian vault the user already has. The vault root stays where it is; this wiki is one subject within it. Use only if the user explicitly says they have a vault they want this to live inside. Be aware: wikilinks resolve vault-wide in Obsidian, so page titles need to be unique enough not to collide with the rest of the vault.
+Read the matching reference file before acting. Do not run operations from memory of this SKILL.md alone — the references carry the procedures.
 
-3. **Destination path** — where to create the wiki folder:
-   - For **new vault**: a parent directory; the wiki folder (named after the subject, kebab-cased) is created inside it and becomes the vault root. Default if unsure: current working directory.
-   - For **inside an existing vault**: the absolute path to the existing vault. The wiki folder is created at the vault root (or a user-chosen subfolder within it).
+## Mode 1 — Bootstrap (construct)
 
-Do not invent a subject. Do not silently pick a destination outside the cwd. If the user did not specify the vault mode, ask once with "new vault" as the default.
+Create the structure only, never content. Settle three inputs: **subject** (short, specific — ask once if missing), **vault mode** (new standalone vault, the default, or a subfolder inside an existing vault), and **destination path** (default: current working directory). Stamp the four templates in `templates/` (substituting `{{SUBJECT}}` and `{{DATE}}`), create `sources/`, `pages/`, `meta/`, and report the tree.
 
-### The vault root question, explicitly
+At bootstrap, do NOT: write any `pages/*.md`, pre-fill `index.md` with imagined sub-topics, generate sample sources, or research the subject. Fabricated structure ages worse than no structure. The full procedure, including vault-root layout diagrams and the overwrite-refusal rule, is in **`references/bootstrap.md`**.
 
-When creating a **new vault**, the structure is:
+## Mode 2 — Operate (ingest / query / lint)
 
-```
-<destination>/<subject-slug>/    ← this folder IS the Obsidian vault root
-├── README.md
-├── index.md
-├── log.md
-├── sources/
-├── pages/
-└── meta/SCHEMA.md
-```
+The day-to-day loop inside an existing wiki. **The vault's own `meta/SCHEMA.md` is the authority** — read it first; where it conflicts with this skill's defaults, the vault's schema wins. The three operations:
 
-The user opens `<destination>/<subject-slug>/` in Obsidian (File → Open vault → choose folder). The vault root and the wiki root are the same directory.
+- **Ingest** — a new source lands in `sources/`; read it, then update every page it touches (typically 5–15): edit existing pages in place (write-back, not append-only), create pages only for genuinely new entities/concepts, update `index.md`, append a parseable `log.md` entry.
+- **Query** — answer from `pages/` with page citations; offer to file novel synthesis back into the wiki so answers compound.
+- **Lint** — periodic health check: contradictions (reconcile by source recency), stale claims, orphans, dangling links, missing cross-references, compression-trap pages. Report, propose, apply what the user approves.
 
-When linking **inside an existing vault**, the structure is:
+Detailed procedures, the log-entry format, contradiction-reconciliation rules, and synthesis-page guidance are in **`references/operations.md`**.
 
-```
-<existing-vault-root>/           ← already an Obsidian vault, untouched
-├── ...user's other notes...
-└── <subject-slug>/              ← the new wiki, a subfolder
-    ├── README.md
-    ├── index.md
-    ├── log.md
-    ├── sources/
-    ├── pages/
-    └── meta/SCHEMA.md
-```
+## Mode 3 — Audit & upgrade (improve)
 
-The vault root stays where it was; the wiki is a folder inside it. The user does *not* re-open Obsidian — the new folder appears in the existing vault's file tree.
+Assess an existing second brain — whether built by this skill, hand-rolled from Karpathy's gist, or a plain Obsidian vault — and bring it up to the pattern. The flow: inventory the vault, score it against the pattern's checklist (source/wiki separation, index, log, schema, link discipline, page shape), report findings, then retrofit the missing pieces in safe order with user approval.
 
-## How to create the structure
+Hard safety rules: snapshot first (`git init` + commit, or confirm existing VCS), never move or rewrite the user's original notes without explicit approval, map existing structures (PARA, Zettelkasten, daily notes) onto the pattern rather than forcing a restructure. The audit checklist, scoring rubric, and retrofit sequence are in **`references/audit.md`**.
 
-Use `mkdir -p` and the templates in `templates/` next to this SKILL.md. The four template files are placeholders with `{{SUBJECT}}` and `{{DATE}}` markers — substitute them when stamping out.
+## Principles (all modes)
 
-Step-by-step:
-
-1. Resolve `<root>` = `<destination>/<subject-kebab-case>`.
-2. Refuse to overwrite if `<root>` already exists with non-empty content. Tell the user, ask whether to pick a new name or merge.
-3. Create directories: `<root>/sources`, `<root>/pages`, `<root>/meta`.
-4. Stamp `README.md.template` → `<root>/README.md`.
-5. Stamp `index.md.template` → `<root>/index.md`.
-6. Stamp `log.md.template` → `<root>/log.md` with today's date as the first entry ("wiki created").
-7. Stamp `SCHEMA.md.template` → `<root>/meta/SCHEMA.md`.
-8. Drop a tiny `.gitkeep` in `sources/` and `pages/` so they survive `git init` empty.
-9. Report what was created as a tree, with the absolute path.
-
-The templates live in `templates/` — read them with the Read tool, substitute, and write with the Write tool. Substitutions:
-
-| Marker | Replacement |
-|--------|-------------|
-| `{{SUBJECT}}` | the subject as the user phrased it (title case OK) |
-| `{{SUBJECT_SLUG}}` | kebab-case version used in folder name |
-| `{{DATE}}` | today's date, `YYYY-MM-DD` |
-
-## What NOT to do at bootstrap
-
-- Do not write any `pages/*.md` files. The wiki starts empty by design — pages are added later when the user ingests their first source.
-- Do not pre-fill `index.md` with imagined sub-topics. The index is a catalog of *actual* pages, and there are none yet.
-- Do not generate sample sources or pretend the user has uploaded anything.
-- Do not research the subject. The skill is structure-only at this stage.
-
-The reason: this wiki is for *one* user building knowledge on *one* subject. Fabricated structure ages worse than no structure — it bakes in assumptions the user hasn't made yet. An empty `pages/` and a one-line `index.md` invite the user to start cleanly.
-
-## Obsidian is the runtime
-
-This is an Obsidian vault first, a folder of markdown files second. Everything assumes Obsidian:
-
-- **Wikilinks** — `[[Page Title]]` is the only link style. It's how the wiki becomes a wiki rather than a list. Obsidian resolves these to file paths, surfaces broken links, and builds the graph.
-- **Backlinks** — Obsidian's backlinks pane is the primary way pages discover their incoming references. The schema's "See also" sections are written assuming the user can also see backlinks live.
-- **Graph view** — the visible payoff of disciplined linking. The schema's lint pass exists partly to keep the graph honest.
-- **Unresolved links** — Obsidian shows wikilinks pointing at non-existent pages. The schema's "dangling links" check leans on this.
-- **Vault root** = `<root>/`. The user opens that folder in Obsidian — File → Open vault → choose folder.
-
-Do not add a `.obsidian/` config directory — Obsidian creates it on first open. Do not add a non-Obsidian fallback link style (no `[markdown](links.md)` between pages); the consistency matters for the graph.
-
-## Reporting back
-
-After creating the structure, show:
-
-1. The absolute path of the new vault.
-2. A small directory tree (or `ls -R` style listing).
-3. One next-step suggestion: "Drop your first source into `sources/`, then ask me to ingest it." — but only as a hint, not as a forced workflow.
-
-## Future operations (not in scope here)
-
-The schema document (`meta/SCHEMA.md`) describes three operations that will be relevant later: **ingest** (add a source, update pages, append to log), **query** (search pages, optionally file the answer back), and **lint** (find contradictions, orphans, stale claims). These are out of scope for the bootstrap skill — they belong to the wiki itself once it has pages. The schema documents them so the next Claude invocation working in the vault knows the rules.
+- **Division of labor** — the human sources, directs, and decides; the agent does the bookkeeping. Never invent sources or facts. A claim without backing in `sources/` is marked `(no source yet)` and surfaced at the next lint.
+- **Write-back over append-only** — when new information arrives about an entity or concept that has a page, update that page. Do not accumulate parallel near-duplicate pages that only backlinks connect.
+- **Reversible changes** — every operation appends to `log.md` with the format `## [YYYY-MM-DD] <op> | <summary>` plus affected pages, so any pass can be located and undone. Destructive actions (deleting pages, merging, moving user files) are proposed, not silently applied.
+- **AI-first pages** — pages are optimized for the *next agent* as much as the human: consistent shape, frontmatter with type/tags/updated, sources cited in a Sources section, self-contained context, explicit recency markers. See the page shape in `meta/SCHEMA.md` (stamped from `templates/SCHEMA.md.template`).
+- **Obsidian-native linking** — `[[wikilinks]]` only between pages; no markdown-path links. Do not create a `.obsidian/` directory — Obsidian generates it on first open.
+- **Schema co-evolves** — when a convention repeatedly proves awkward during operate/audit passes, propose a schema amendment rather than silently deviating.
 
 ## Resources
 
-- **`templates/README.md.template`** — top-level README, explains the wiki to a future reader
+### Reference files
+
+- **`references/bootstrap.md`** — full bootstrap procedure: inputs, vault-root layouts, template stamping, overwrite handling
+- **`references/operations.md`** — ingest / query / lint / synthesis procedures, log format, reconciliation rules
+- **`references/audit.md`** — auditing an existing vault: inventory, scorecard, retrofit sequence, migration safety
+
+### Templates (stamped at bootstrap, reused when retrofitting)
+
+- **`templates/README.md.template`** — vault README
 - **`templates/index.md.template`** — catalog skeleton
-- **`templates/log.md.template`** — changelog skeleton with the first entry
-- **`templates/SCHEMA.md.template`** — operating rules for ingest/query/lint, the wikilink convention, the page shape
+- **`templates/log.md.template`** — changelog skeleton with parseable entry format
+- **`templates/SCHEMA.md.template`** — the operating contract: page shape, frontmatter, the three operations, conventions

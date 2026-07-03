@@ -1,7 +1,7 @@
 {
   "name": "wiki",
-  "description": "Bootstrap a personal LLM-maintained wiki as an Obsidian vault — three folders, an index, a changelog, and a schema. Built around Obsidian's wikilinks and graph view.",
-  "version": "0.1.1",
+  "description": "Construct, operate, or improve a personal LLM-maintained wiki (second brain) as an Obsidian vault — Karpathy's LLM-wiki pattern: bootstrap the structure, run ingest/query/lint operations, and audit or retrofit existing vaults.",
+  "version": "0.2.1",
   "author": {
     "name": "ghostmind-dev"
   }
