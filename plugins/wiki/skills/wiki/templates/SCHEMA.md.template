@@ -1,8 +1,8 @@
 # Wiki Schema — {{SUBJECT}}
 
-This document is the operating contract for the wiki. Any LLM working in this vault should read it first.
+This document is the operating contract for the wiki. Any LLM working in this vault must read it first — it is the authority; where a general skill or habit conflicts with it, this schema wins.
 
-The schema is intentionally short. As the wiki grows, refine it — but resist baking in rules before there is real evidence they help.
+The schema is intentionally short. As the wiki grows, refine it — but resist baking in rules before there is real evidence they help. When a convention repeatedly fights the actual work, amend the schema (with the user's approval) rather than quietly deviating.
 
 ## Subject scope
 
@@ -13,11 +13,11 @@ This wiki covers {{SUBJECT}} and any sub-topic the user explores under it. The s
 ## Layout
 
 ```
-sources/   raw inputs, read-only
+sources/   raw inputs, read-only — never edited after landing
 pages/     wiki pages, markdown with [[wikilinks]]
 meta/      this schema and any future config
-index.md   catalog of all pages
-log.md     append-only changelog
+index.md   catalog of all pages, updated on every ingest
+log.md     append-only changelog, parseable entries
 ```
 
 ## Page shape
@@ -25,9 +25,16 @@ log.md     append-only changelog
 Every page in `pages/` follows the same shape:
 
 ```markdown
+---
+type: concept        # concept | entity | source-summary | synthesis
+tags: []
+updated: 2026-07-03
+---
+
 # Page Title
 
-One-paragraph summary. Plain English. No more than 4-5 sentences.
+One-paragraph summary. Plain English, self-contained — readable without opening
+any other page. No more than 4-5 sentences.
 
 ## [Section heading]
 
@@ -35,8 +42,7 @@ Body content. Cross-reference other pages with `[[Page Title]]`.
 
 ## Sources
 
-- [[source-filename]] — short note on what was used from it
-- [[source-filename]] — ...
+- [[source-filename]] — short note or quote of what was used from it
 
 ## See also
 
@@ -44,49 +50,73 @@ Body content. Cross-reference other pages with `[[Page Title]]`.
 - [[Related Page 2]]
 ```
 
-Page filenames are kebab-case, no extension shown in links: `pages/edo-period-economy.md` → `[[edo-period-economy]]` or `[[Edo Period Economy]]` (Obsidian resolves both).
+Page types: **concept** (an idea or theme), **entity** (a person, place, organization, work), **source-summary** (the distillation of one source), **synthesis** (a page whose sources are other wiki pages — cross-cutting insight). Bump `updated` whenever the page substantively changes.
+
+Pages are written for the *next agent* as much as for the human: self-contained summary, explicit dates, claims traceable to sources.
+
+Page filenames are kebab-case: `pages/edo-period-economy.md` → `[[edo-period-economy]]` or `[[Edo Period Economy]]` (Obsidian resolves both).
+
+## Log format
+
+Every operation appends one entry to `log.md`, newest at the bottom:
+
+```markdown
+## [2026-07-03] ingest | Article title or one-line summary
+
+- created: [[new-page]]
+- updated: [[existing-page]], [[index]]
+- notes: anything worth remembering about the pass
+```
+
+Operation names: `ingest`, `query`, `lint`, `synthesis`, `edit`, `bootstrap`, `audit`. The `## [YYYY-MM-DD] op | summary` prefix keeps the log greppable. Never rewrite existing entries.
 
 ## Three operations
 
 ### 1. Ingest
 
-When a new file appears in `sources/`:
+When a new file appears in `sources/` (or the user hands over a URL/text — save it into `sources/` first):
 
-1. Read the source.
-2. Extract the key claims, names, dates, and concepts.
-3. For each, decide: does an existing page cover it? If yes, edit. If no and the topic warrants a page, create.
+1. Read the source; extract key claims, entities, concepts, dates.
+2. For each: does an existing page cover it? **If yes, edit that page in place** — update the entity's own page rather than creating a parallel note (the write-back rule). If no and the topic warrants a page, create one.
+3. Cite as you write: every claim's source goes in the page's Sources section.
 4. Update `index.md` with any new pages.
-5. Append a `log.md` entry describing what was ingested and which pages changed.
+5. Append a `log.md` entry listing created/updated pages.
 
-Aim for **10-15 page touches per ingest** as a rough ceiling — if a source seems to touch more, the wiki is probably underdeveloped and that's fine; if it seems to touch fewer than 2, the source may be marginal to the subject.
+A real source typically touches **5–15 pages**. Fewer than 2 suggests the source is marginal; say so. More suggests the wiki is underdeveloped there — fine early on.
 
 ### 2. Query
 
 When the user asks a question:
 
-1. Search `pages/` for relevant pages (filename, headings, body).
-2. Synthesize an answer from those pages — cite which pages were used.
-3. If the answer required reasoning not yet in the wiki, ask whether to file it back as a page edit or new page.
+1. Search `pages/` (index, filenames, headings, body); follow wikilinks outward.
+2. Synthesize an answer from those pages — cite which pages were used. If the wiki can't answer, say so; don't silently substitute general knowledge.
+3. If the answer required reasoning not yet in the wiki, offer to file it back as a page edit or new page — answers should compound.
+
+Read-only queries do not get log entries; log a `query` entry only when something is filed back.
 
 ### 3. Lint
 
-A periodic health check:
+A periodic health check — report, propose, apply only what the user approves:
 
-- **Contradictions:** pages making opposing claims about the same fact.
-- **Stale claims:** assertions that no longer match newer sources.
-- **Orphans:** pages with no incoming `[[wikilinks]]`.
-- **Dangling links:** `[[wikilinks]]` pointing to non-existent pages.
-- **Missing cross-references:** pages that clearly relate but don't link to each other.
+- **Contradictions:** opposing claims about the same fact. Default reconciliation: newer source wins; keep the superseded claim as a one-line footnote (`Previously reported as X ([[old-source]], superseded YYYY-MM-DD).`). If recency doesn't settle it, ask.
+- **Stale claims:** assertions outdated by newer sources.
+- **Dangling links:** `[[wikilinks]]` to non-existent pages — create-worthy or typos.
+- **Orphans:** pages with no incoming links.
+- **Missing cross-references:** pages that clearly relate but don't link.
+- **Index drift:** pages missing from `index.md` or entries whose pages are gone.
+- **Compression trap:** page clusters larger than the sources they summarize — propose collapsing into a dense page or table.
+- **Unsourced claims:** anything marked `(no source yet)`.
 
-Report findings, propose fixes, apply only what the user approves. Append a `log.md` entry for any fixes made.
+Append a `log.md` entry for any fixes made.
 
 ## Conventions
 
-- **Wikilinks:** use Obsidian `[[Page Title]]` syntax for all inline references between pages. This is the *only* link style — no `[markdown](paths.md)` links between pages. The reason: Obsidian's graph view, backlinks pane, and unresolved-link surfacing all key off this syntax. Mixing styles silently breaks them.
+- **Wikilinks:** `[[Page Title]]` syntax for all references between pages — the *only* link style. Obsidian's graph view, backlinks pane, and unresolved-link surfacing all key off it; mixing styles silently breaks them.
+- **Write-back over append-only:** new information about something that has a page updates that page. No parallel near-duplicates connected only by backlinks.
 - **Dates:** ISO format, `YYYY-MM-DD`.
-- **Naming:** page filenames are kebab-case. Page titles inside the file are title case. Obsidian resolves both `[[edo-period-economy]]` and `[[Edo Period Economy]]` to the same file.
-- **No fabrication:** if a fact has no source in `sources/`, mark it `_(no source yet)_` and surface it in the next lint.
-- **Append-only `log.md`:** never rewrite history. New entries at the bottom.
+- **No fabrication:** if a fact has no source in `sources/`, mark it `(no source yet)` and surface it at the next lint.
+- **Append-only `log.md`:** never rewrite history; new entries at the bottom.
+- **Reversibility:** destructive actions (deleting, merging, moving files) are proposed to the user, never silently applied.
 
 ## What this schema is not
 

@@ -1,9 +1,10 @@
 # Changelog — {{SUBJECT}}
 
-Append-only record of every change to the wiki. Newest entries at the bottom. Each entry: date, operation (ingest/edit/lint), one-line summary, optional list of affected pages.
+Append-only record of every change to the wiki. Newest entries at the bottom. Entry format: `## [YYYY-MM-DD] operation | one-line summary`, followed by created/updated pages. Operations: ingest, query, lint, synthesis, edit, bootstrap, audit. Never rewrite existing entries.
 
 ---
 
-## {{DATE}}
+## [{{DATE}}] bootstrap | wiki created
 
-- **bootstrap** — wiki created. Subject: **{{SUBJECT}}**. Structure initialized: `sources/`, `pages/`, `meta/SCHEMA.md`, `index.md`, `log.md`.
+- subject: **{{SUBJECT}}**
+- structure initialized: `README.md`, `index.md`, `log.md`, `sources/`, `pages/`, `meta/SCHEMA.md`
