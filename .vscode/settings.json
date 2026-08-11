@@ -21,6 +21,5 @@
   "workbench.colorCustomizations": {
     "gitDecoration.ignoredResourceForeground": "#482c7d"
   },
-  "peacock.remoteColor": "#42b883",
   "deno.enable": true
 }

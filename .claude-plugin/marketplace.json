@@ -3,31 +3,20 @@
   "owner": {
     "name": "ghostmind-dev"
   },
+  "description": "Ghostmind's misc skills, commands, and hooks, as a single installable Claude Code plugin.",
   "plugins": [
     {
-      "name": "places",
-      "source": "./plugins/places",
-      "description": "City explsration coordinator — find places, get directions with transit, compare distances, geocode addresses, and more using Google Maps APIs"
-    },
-    {
-      "name": "wiki",
-      "source": "./plugins/wiki",
-      "description": "Bootstrap a personal, LLM-maintained wiki for a single subject as an Obsidian vault — three folders, an index, a changelog, and a schema. Structure-only; no content is invented."
-    },
-    {
-      "name": "git",
-      "source": "./plugins/git",
-      "description": "Solo-dev git shipping workflow — /git:ship stages everything, auto-writes a commit message from the diff, pushes the current branch, opens a PR into main, and auto-merges it. Refuses to run on main."
-    },
-    {
-      "name": "postgres",
-      "source": "./plugins/postgres",
-      "description": "PostgreSQL management coordinator — list and inspect databases, run guarded SQL queries, and copy/clone databases and tables using psql, pg_dump, and createdb with your PG* environment variables. Read and copy only: destructive operations are blocked and require double confirmation."
-    },
-    {
-      "name": "session",
-      "source": "./plugins/session",
-      "description": "Session quality-of-life enhancements — plays a gentle, joyful chime via the Notification hook whenever Claude is waiting for your input, so you can step away and know when your attention is needed. Cross-platform with a bundled sound."
+      "name": "toolkits",
+      "source": "./",
+      "description": "Ghostmind's misc skills, commands, and hooks for Claude Code.",
+      "category": "productivity",
+      "keywords": [
+        "wiki",
+        "second-brain",
+        "postgres",
+        "google-maps",
+        "git"
+      ]
     }
   ]
 }

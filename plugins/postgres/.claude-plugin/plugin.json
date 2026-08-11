@@ -1,8 +1,0 @@
-{
-  "name": "postgres",
-  "description": "PostgreSQL management coordinator — list and inspect databases, run guarded SQL queries, and copy/clone databases and tables using psql, pg_dump, and createdb with your PG* environment variables. Read and copy only: destructive operations are blocked.",
-  "version": "0.1.0",
-  "author": {
-    "name": "ghostmind-dev"
-  }
-}

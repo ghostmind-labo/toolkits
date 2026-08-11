@@ -1,8 +1,0 @@
-{
-  "name": "git",
-  "description": "Solo-dev git shipping workflow — stage everything, auto-write a commit message from the diff, push the current branch, open a PR into main, and auto-merge it. Never touches local main.",
-  "version": "0.1.0",
-  "author": {
-    "name": "ghostmind-dev"
-  }
-}
