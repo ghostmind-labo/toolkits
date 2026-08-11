@@ -1,8 +1,0 @@
-{
-  "name": "wiki",
-  "description": "Construct, operate, or improve a personal LLM-maintained wiki (second brain) as an Obsidian vault — Karpathy's LLM-wiki pattern: bootstrap the structure, run ingest/query/lint operations, and audit or retrofit existing vaults.",
-  "version": "0.2.1",
-  "author": {
-    "name": "ghostmind-dev"
-  }
-}
