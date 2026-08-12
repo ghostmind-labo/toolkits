@@ -1,13 +1,25 @@
 {
-  "description": "Play a gentle chime when Claude is waiting for the user's input.",
+  "description": "Play a chime when Claude finishes a turn, and a distinct one when Claude is blocked waiting on the user.",
   "hooks": {
+    "Stop": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/play-sound.sh input-needed.wav",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
     "Notification": [
       {
         "matcher": "*",
         "hooks": [
           {
             "type": "command",
-            "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/play-sound.sh",
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/play-sound.sh attention-needed.wav",
             "timeout": 10
           }
         ]

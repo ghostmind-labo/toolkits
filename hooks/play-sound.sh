@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
-# Play the bundled "input needed" chime when Claude is waiting for the user.
-# Wired to the Notification hook event. Cross-platform with a graceful fallback.
+# Play a bundled sound to signal a change of state to the user.
+# Wired to the Stop and Notification hook events, each passing its own sound.
+# Cross-platform with a graceful fallback.
+#
+# Usage: play-sound.sh [sound-file-name]
+#   The argument is a file name inside assets/ (default: input-needed.wav).
 #
 # Design notes:
 # - Reads and discards stdin (hooks receive a JSON payload there).
@@ -14,7 +18,10 @@ cat >/dev/null 2>&1 || true
 # Resolve the bundled sound. CLAUDE_PLUGIN_ROOT is set by Claude Code for plugin
 # hooks; fall back to a path relative to this script when run standalone.
 PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
-SOUND="$PLUGIN_ROOT/assets/input-needed.wav"
+SOUND="$PLUGIN_ROOT/assets/${1:-input-needed.wav}"
+
+# A caller naming a sound that isn't bundled should still get an audible cue.
+[ -f "$SOUND" ] || SOUND="$PLUGIN_ROOT/assets/input-needed.wav"
 
 # Allow opting out without uninstalling the plugin.
 if [ "${SESSION_SOUND_DISABLED:-}" = "1" ]; then
