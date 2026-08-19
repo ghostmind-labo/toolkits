@@ -3,35 +3,54 @@
   "name": "toolkits",
   "type": "app",
   "routines": {
-    "init_tmux": "run tmux init toolkits",
-    "attach_tmux": "run tmux attach toolkits",
-    "terminate_tmux": "run tmux terminate toolkits",
+    "init_herdr": "run herdr init toolkits",
+    "attach_herdr": "run herdr attach toolkits",
+    "terminate_herdr": "run herdr terminate toolkits",
     "claude_marketplace_add": "claude plugin marketplace add ./",
     "claude_marketplace_add_remote": "claude plugin marketplace add ghostmind-labo/toolkits"
   },
-  "tmux": {
-    "sessions": [
+  "herdr": {
+    "workspaces": [
       {
-        "name": "toolkits",
-        "windows": [
+        "label": "toolkits",
+        "tabs": [
           {
-            "name": "claude",
+            "label": "claude",
             "layout": "compact",
             "compact": {
               "type": "single",
-              "panes": {
-                "main": "Claude"
-              }
+              "panes": [
+                {
+                  "name": "main",
+                  "description": "Claude Code session for this project",
+                  "focus": true
+                }
+              ]
             }
           },
           {
-            "name": "shell",
+            "label": "shell",
             "layout": "compact",
             "compact": {
-              "type": "single",
-              "panes": {
-                "main": "$SHELL"
-              }
+              "type": "two-by-two",
+              "panes": [
+                {
+                  "name": "server",
+                  "description": "long-running dev server, do not interrupt"
+                },
+                {
+                  "name": "build",
+                  "description": "builds, installs and other long-running tasks"
+                },
+                {
+                  "name": "logs",
+                  "description": "tail logs and watch output"
+                },
+                {
+                  "name": "execution-shell",
+                  "description": "run ad-hoc commands here without interrupting the other panes"
+                }
+              ]
             }
           }
         ]
