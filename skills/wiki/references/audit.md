@@ -75,6 +75,7 @@ For a vault that already follows the pattern (including ones bootstrapped by an 
 - Page frontmatter (type/tags/updated).
 - The write-back rule and contradiction-reconciliation convention.
 - Synthesis pages as a recognized page type.
+- The `## Open questions` section in `index.md` (gaps filed by queries and lints, resolved by ingests).
 
 Propose these as schema amendments; never rewrite the user's schema wholesale — it may encode deliberate local decisions.
 
