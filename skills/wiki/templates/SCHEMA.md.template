@@ -79,7 +79,8 @@ When a new file appears in `sources/` (or the user hands over a URL/text — sav
 1. Read the source; extract key claims, entities, concepts, dates.
 2. For each: does an existing page cover it? **If yes, edit that page in place** — update the entity's own page rather than creating a parallel note (the write-back rule). If no and the topic warrants a page, create one.
 3. Cite as you write: every claim's source goes in the page's Sources section.
-4. Update `index.md` with any new pages.
+4. Update `index.md` with any new pages. If the source answers an entry under **Open
+   questions**, resolve it: remove the question and note the resolution in the log entry.
 5. Append a `log.md` entry listing created/updated pages.
 
 A real source typically touches **5–15 pages**. Fewer than 2 suggests the source is marginal; say so. More suggests the wiki is underdeveloped there — fine early on.
@@ -89,7 +90,7 @@ A real source typically touches **5–15 pages**. Fewer than 2 suggests the sour
 When the user asks a question:
 
 1. Search `pages/` (index, filenames, headings, body); follow wikilinks outward.
-2. Synthesize an answer from those pages — cite which pages were used. If the wiki can't answer, say so; don't silently substitute general knowledge.
+2. Synthesize an answer from those pages — cite which pages were used. If the wiki can't answer, say so; don't silently substitute general knowledge. File the gap under **Open questions** in `index.md` so it becomes an ingestion target.
 3. If the answer required reasoning not yet in the wiki, offer to file it back as a page edit or new page — answers should compound.
 
 Read-only queries do not get log entries; log a `query` entry only when something is filed back.
@@ -106,6 +107,10 @@ A periodic health check — report, propose, apply only what the user approves:
 - **Index drift:** pages missing from `index.md` or entries whose pages are gone.
 - **Compression trap:** page clusters larger than the sources they summarize — propose collapsing into a dense page or table.
 - **Unsourced claims:** anything marked `(no source yet)`.
+- **Single-source claims:** load-bearing claims (ones other pages build on) resting on one source. Not an error — but propose a corroborating source as an Open questions entry.
+- **Open-question drift:** questions in `index.md` already answered by later ingests, or stale enough to drop.
+
+Lint is also where new questions come from: after the checks, suggest 2–3 questions or sources that would most strengthen the wiki, and add the ones the user endorses to **Open questions**.
 
 Append a `log.md` entry for any fixes made.
 

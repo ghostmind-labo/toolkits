@@ -30,7 +30,7 @@ Trigger: a new file appears in `sources/`, or the user hands over a URL, PDF, tr
    - **No page, and the topic warrants one → create it** following the page shape in the schema (frontmatter, summary paragraph, sections, Sources, See also).
    - **No page, topic marginal → mention it inline** on a related page with a `[[wikilink]]`. Obsidian shows it as an unresolved link — a cheap signal of what might deserve a page later.
 5. **Cite as you write.** Every claim traces to a source: list the source file in the page's Sources section, with a short note or quote of what was used. This is what makes lint verification and staleness detection possible.
-6. **Update `index.md`** with any new pages (one line each: link + one-line description, under a category).
+6. **Update `index.md`** with any new pages (one line each: link + one-line description, under a category). If the source answers an entry under **Open questions**, remove the question and note the resolution in the log entry.
 7. **Append the `log.md` entry** listing created/updated pages.
 
 Calibration: fewer than 2 page touches suggests the source is marginal to the subject — say so rather than force-filing it. More than ~15 suggests the wiki is underdeveloped in that area, which is fine early on.
@@ -39,9 +39,9 @@ Calibration: fewer than 2 page touches suggests the source is marginal to the su
 
 Trigger: the user asks a question about the subject.
 
-1. **Search `pages/`** — filenames, headings, frontmatter tags, body text (`grep`/Glob are sufficient; `index.md` is the map). Follow `[[wikilinks]]` outward from the best hits.
+1. **Search `pages/`** — filenames, headings, frontmatter tags, body text (`grep`/Glob are sufficient; `index.md` is the map). Follow `[[wikilinks]]` outward from the best hits. If a vault outgrows this (many hundreds of pages), suggest [qmd](https://github.com/tobi/qmd) — local hybrid search over markdown with a CLI — rather than building retrieval infrastructure.
 2. **Synthesize the answer from wiki pages**, citing which pages were used. If a page carries a claim needing verification, check it against the source it cites rather than trusting the page blindly.
-3. **If the wiki cannot answer**, say so — do not silently fall back to general knowledge. Offer to answer from general knowledge with clear labeling, and note the gap as an ingestion candidate.
+3. **If the wiki cannot answer**, say so — do not silently fall back to general knowledge. Offer to answer from general knowledge with clear labeling, and file the gap under **Open questions** in `index.md` so it becomes an ingestion target.
 4. **File good answers back.** If the answer required synthesis not yet written anywhere, offer to save it as a new page or a page edit. This is how querying compounds the wiki instead of just consuming it. Read-only queries are not logged; log a `query` entry only when something is filed back, noting the filed page.
 
 ## Lint
@@ -58,6 +58,10 @@ Checks, in order of value:
 6. **Index drift** — pages missing from `index.md`, or index entries whose pages are gone.
 7. **Compression trap** — clusters of pages that have grown larger than the sources they summarize, or fragmented micro-pages. Propose collapsing into a dense single page or a comparison table.
 8. **Unsourced claims** — text marked `(no source yet)` or claims with no Sources entry. List for the user to source or strike.
+9. **Single-source claims** — load-bearing claims (ones other pages build on) resting on a single source. Not an error — propose a corroborating source as an Open questions entry.
+10. **Open-question drift** — entries under **Open questions** in `index.md` already answered by later ingests, or stale enough to drop.
+
+Lint is also where new questions come from: after the checks, suggest 2–3 questions or sources that would most strengthen the wiki, and add the ones the user endorses to **Open questions**. For a learning vault this is the growth engine — the wiki tells the user what to read next.
 
 ### Contradiction reconciliation
 

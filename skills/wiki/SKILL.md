@@ -56,13 +56,15 @@ Create the structure only, never content. Settle three inputs: **subject** (shor
 
 At bootstrap, do NOT: write any `pages/*.md`, pre-fill `index.md` with imagined sub-topics, generate sample sources, or research the subject. Fabricated structure ages worse than no structure. The full procedure, including vault-root layout diagrams and the overwrite-refusal rule, is in **`references/bootstrap.md`**.
 
+**Many vaults, one standard.** One subject = one vault, and a user may accumulate many (one per niche subject they're learning). Bootstrap every vault identically from the same templates — this skill is the shared standard, so any agent can open any of the user's vaults, read its `meta/SCHEMA.md`, and operate it with no hand-off. Per-vault divergence lives in that vault's schema, never in improvised structure.
+
 ## Mode 2 — Operate (ingest / query / lint)
 
 The day-to-day loop inside an existing wiki. **The vault's own `meta/SCHEMA.md` is the authority** — read it first; where it conflicts with this skill's defaults, the vault's schema wins. The three operations:
 
-- **Ingest** — a new source lands in `sources/`; read it, then update every page it touches (typically 5–15): edit existing pages in place (write-back, not append-only), create pages only for genuinely new entities/concepts, update `index.md`, append a parseable `log.md` entry.
-- **Query** — answer from `pages/` with page citations; offer to file novel synthesis back into the wiki so answers compound.
-- **Lint** — periodic health check: contradictions (reconcile by source recency), stale claims, orphans, dangling links, missing cross-references, compression-trap pages. Report, propose, apply what the user approves.
+- **Ingest** — a new source lands in `sources/`; read it, then update every page it touches (typically 5–15): edit existing pages in place (write-back, not append-only), create pages only for genuinely new entities/concepts, update `index.md` (resolving any open question the source answers), append a parseable `log.md` entry.
+- **Query** — answer from `pages/` with page citations; offer to file novel synthesis back into the wiki so answers compound. Gaps the wiki can't answer are filed under **Open questions** in `index.md`.
+- **Lint** — periodic health check: contradictions (reconcile by source recency), stale claims, orphans, dangling links, missing cross-references, compression-trap pages, single-source load-bearing claims. Report, propose, apply what the user approves — and end by suggesting the 2–3 questions or sources that would most strengthen the wiki.
 
 Detailed procedures, the log-entry format, contradiction-reconciliation rules, and synthesis-page guidance are in **`references/operations.md`**.
 
@@ -78,7 +80,8 @@ Hard safety rules: snapshot first (`git init` + commit, or confirm existing VCS)
 - **Write-back over append-only** — when new information arrives about an entity or concept that has a page, update that page. Do not accumulate parallel near-duplicate pages that only backlinks connect.
 - **Reversible changes** — every operation appends to `log.md` with the format `## [YYYY-MM-DD] <op> | <summary>` plus affected pages, so any pass can be located and undone. Destructive actions (deleting pages, merging, moving user files) are proposed, not silently applied.
 - **AI-first pages** — pages are optimized for the *next agent* as much as the human: consistent shape, frontmatter with type/tags/updated, sources cited in a Sources section, self-contained context, explicit recency markers. See the page shape in `meta/SCHEMA.md` (stamped from `templates/SCHEMA.md.template`).
-- **Obsidian-native linking** — `[[wikilinks]]` only between pages; no markdown-path links. Do not create a `.obsidian/` directory — Obsidian generates it on first open.
+- **Obsidian-native linking** — `[[wikilinks]]` only between pages; no markdown-path links. Do not create a `.obsidian/` directory — Obsidian generates it on first open. The consistent `type`/`tags`/`updated` frontmatter also makes pages queryable with Obsidian's core **Bases** plugin (tables/views over frontmatter) — worth mentioning to the user, never a dependency.
+- **Open questions compound too** — the wiki tracks what it *cannot* answer (an `## Open questions` section in `index.md`): queries that hit gaps and lint passes add entries; ingests resolve them. For a learning vault this is the growth engine — the wiki tells the user what to read next.
 - **Schema co-evolves** — when a convention repeatedly proves awkward during operate/audit passes, propose a schema amendment rather than silently deviating.
 
 ## Resources
