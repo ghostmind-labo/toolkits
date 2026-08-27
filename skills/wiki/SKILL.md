@@ -49,6 +49,14 @@ Wiki pages are notes tagged **`page`** plus a type tag: `concept`, `entity`, `so
 
 Detection: mentions of creating, starting, or scaffolding → **Bootstrap**. A note titled `Schema` exists in the connected workspace and the request is about content → **Operate**. If unsure, check `find_note("Schema")` — a workspace with the four meta titles is an operating wiki. Never bootstrap into a workspace that already has content without confirming with the user.
 
+### Workspace targeting (which wiki are we in?)
+
+The standard setup is **one MCP server per wiki workspace**, each header-pinned to its workspace (e.g. `learning-ai` → workspace `ai`, `learning-chess` → workspace `chess`), often several connected in the same session. When the user names a subject ("we're on AI now", "ingest this into the chess wiki"), route every call through the **matching MCP's tools** — the prefix (`mcp__learning-ai__…`) selects the workspace; the bare tool names are otherwise identical. Rules:
+
+- Confirm where you landed with `get_context` (the `workspace` header) before the first write of a session — a header pin overrides the default workspace, and `set_default_workspace` cannot escape it.
+- If several wiki MCPs are connected and the user hasn't named one, ask once — never guess which wiki receives a write.
+- One session can operate several wikis; just re-anchor (read that workspace's Schema note) each time the target changes. Wikis never share content — cross-subject links do not exist.
+
 Read the matching reference file before acting. Do not run operations from memory of this SKILL.md alone — the references carry the procedures.
 
 ## Mode 1 — Bootstrap (construct)
