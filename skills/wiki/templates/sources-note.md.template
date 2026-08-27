@@ -1,0 +1,12 @@
+The raw layer of the **{{SUBJECT}}** wiki. Every source lands here: files are attached to this note, and every source — attached file or separate `source`-tagged note — gets a row in the ledger below. Sources are immutable once landed; the wiki ([[Index]]) is built *from* them, never the other way.
+
+File refs like `[[file:name.pdf]]` resolve only on this note, because the files are attached here. Wiki pages cite sources by name with a link back to this note.
+
+## Ledger
+
+| Source | Type | Added | Description | Status |
+|--------|------|-------|-------------|--------|
+
+_(No sources yet. Hand one over — a URL, a PDF, pasted text — and ask for an ingest.)_
+
+Status is `pending` (landed, not yet filed into the wiki) or `ingested` (every affected page updated — see the matching entry in [[Log]]).

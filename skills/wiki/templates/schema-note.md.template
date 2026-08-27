@@ -1,0 +1,133 @@
+This note is the operating contract for the **{{SUBJECT}}** wiki. Any LLM working in this workspace must read it first — it is the authority; where a general skill or habit conflicts with it, this schema wins.
+
+The schema is intentionally short. As the wiki grows, refine it — but resist baking in rules before there is real evidence they help. When a convention repeatedly fights the actual work, amend this note (with the user's approval) rather than quietly deviating.
+
+Pattern reference: Karpathy's LLM-wiki (https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f).
+
+## Subject scope
+
+**Subject:** {{SUBJECT}}
+
+This wiki covers {{SUBJECT}} and any sub-topic the user explores under it. The subject can be broad, but the wiki is *not* a general-purpose knowledge base. If a source or question falls outside the subject, say so rather than filing it.
+
+## Structure — everything is a note
+
+This workspace has no folders. Structure comes from tags, titles, links, and views:
+
+| Piece | Where |
+|-------|-------|
+| Raw sources | Attached to [[Sources]] (files) or separate notes tagged `source`; every one has a ledger row there |
+| Wiki pages | Notes tagged `page` + one type tag: `concept`, `entity`, `source-summary`, `synthesis` |
+| Catalog | [[Index]] — every page listed by category, plus **Open questions** |
+| History | [[Log]] — append-only changelog |
+| Rules | this note |
+| Meta notes | Index, Sources, Log, Schema — tagged `meta`; their exact short titles are the stable handles for links |
+| Browsing | the **Pages** view (feed over tag `page`, newest-updated first) |
+
+## Page shape
+
+Every `page`-tagged note follows the same shape:
+
+```markdown
+One-paragraph summary. Plain English, self-contained — readable without opening
+any other note. No more than 4-5 sentences.
+
+## [Section heading]
+
+Body content. Cross-reference other pages with [[wikilinks]] — prefer [[Title|uuid]]
+once the id is known.
+
+## Sources
+
+- report.pdf, p. 12 (see [[Sources]]) — what was used from it
+- [[Some Source Note]] — what was used from it
+
+## See also
+
+- [[Related Page 1]]
+- [[Related Page 2]]
+```
+
+Page types: **concept** (an idea or theme), **entity** (a person, place, organization, work), **source-summary** (the distillation of one source), **synthesis** (a page whose sources are other wiki pages — cross-cutting insight). The type is a tag alongside `page`. Updated timestamps are automatic.
+
+Pages are written for the *next agent* as much as for the human: self-contained summary, explicit dates, claims traceable to sources.
+
+## Link conventions
+
+- Wikilinks between notes — prefer the `[[Title|uuid]]` form when the id is known; a bare title can mis-resolve if duplicated.
+- **Never use `[[file:...]]` refs on pages** — they only resolve on the note the file is attached to ([[Sources]]). Pages cite sources by name + a link to [[Sources]] or the source's own note.
+- Links may be written before their target exists — they resolve on their own when the page is created, and lint surfaces the rest.
+- A note linking to itself does not resolve — self-references stay dangling; write "this note" instead.
+- Mentioning link syntax in prose creates a real link — wrap it in backticks, as this section does.
+
+## Log format
+
+Every operation appends one entry to [[Log]], newest at the bottom (read the note, append, save — never drop existing entries):
+
+```markdown
+## [YYYY-MM-DD] ingest | Article title or one-line summary
+
+- created: [[New Page]]
+- updated: [[Existing Page]], [[Index]]
+- notes: anything worth remembering about the pass
+```
+
+Operations: `ingest`, `query`, `lint`, `sync`, `synthesis`, `edit`, `bootstrap`.
+
+## Capturing sources out-of-band
+
+Sources don't only arrive through an agent session. Clip an article to a note (Chrome extension) and **tag it `source`** — that tag is the capture convention; anything carrying it is a source. Files can be attached directly in the app. The ledger on [[Sources]] remains the catalog: a **sync** pass reconciles the two — it finds `source`-tagged notes and attachments missing from the ledger, adds their rows (status `pending`), and flags orphan or stuck rows. Capture freely; sync keeps the books.
+
+## Three operations
+
+### 1. Ingest
+
+When the user hands over a source (URL, PDF, text):
+
+1. Land it: attach to [[Sources]] (or create a `source`-tagged note for substantial text/articles) and add a ledger row, status `pending`.
+2. Read it through the file tools (outline first, then pages/sections — never whole).
+3. For each claim/entity/concept: does an existing page cover it? **If yes, edit that page in place** (the write-back rule). If no and the topic warrants a page, create one (`page` + type tag). Marginal topics get an inline wikilink mention on a related page.
+4. Cite as you write: every claim's source appears in the page's Sources section.
+5. Update [[Index]] (new pages; resolve any Open question the source answers).
+6. Append the [[Log]] entry; flip the ledger row to `ingested`.
+
+A real source typically touches **5–15 pages**. Fewer than 2 suggests the source is marginal; say so. More suggests the wiki is underdeveloped there — fine early on.
+
+### 2. Query
+
+When the user asks a question:
+
+1. Search the pages (full-text and by tags; the [[Index]] is the map; follow links outward).
+2. Synthesize an answer from those pages — cite which notes were used. If the wiki can't answer, say so; don't silently substitute general knowledge. File the gap under **Open questions** on [[Index]] so it becomes an ingestion target.
+3. If the answer required reasoning not yet in the wiki, offer to file it back as a page edit or a `synthesis` page — answers should compound.
+
+Read-only queries do not get log entries; log a `query` entry only when something is filed back.
+
+### 3. Lint
+
+A periodic health check — report, propose, apply only what the user approves:
+
+- **Contradictions:** opposing claims about the same fact. Default: newer source wins; keep the superseded claim as a one-line footnote (`Previously reported as X (see [[Sources]]), superseded YYYY-MM-DD.`). If recency doesn't settle it, ask.
+- **Stale claims:** assertions outdated by newer sources.
+- **Dangling links & orphans:** from the link-lint tooling — create-worthy pages, typos, and unlinked notes.
+- **Missing cross-references:** pages that clearly relate but don't link.
+- **Index & ledger drift:** pages missing from [[Index]]; attachments without a ledger row; rows stuck `pending`.
+- **Compression trap:** page clusters larger than the sources they summarize — propose collapsing.
+- **Unsourced claims:** anything marked `(no source yet)`.
+- **Single-source claims:** load-bearing claims resting on one source — propose corroboration as an Open question.
+- **Open-question drift:** questions already answered or stale.
+
+End by suggesting 2–3 questions or sources that would most strengthen the wiki; add endorsed ones to **Open questions**. Append a [[Log]] entry for any fixes made.
+
+## Conventions
+
+- **Write-back over append-only:** new information about something that has a page updates that page. No parallel near-duplicates connected only by backlinks.
+- **No fabrication:** if a fact has no source in the ledger, mark it `(no source yet)` and surface it at the next lint.
+- **Append-only [[Log]]:** never rewrite history; new entries at the bottom.
+- **Reversibility:** destructive actions (deleting notes or files, merging) are proposed to the user, never silently applied.
+- **Dates:** ISO format, `YYYY-MM-DD`.
+- **Tag filters are AND**, and note listing is capped — scan by search, not by listing.
+
+## What this schema is not
+
+It is not a fixed taxonomy of pages. The wiki's structure should emerge from real ingests, not from a pre-baked outline. The user can always amend this schema as patterns stabilize.

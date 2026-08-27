@@ -1,0 +1,13 @@
+This is the catalog of every page in the **{{SUBJECT}}** wiki, organized by category. Pages are added here whenever they are created. See [[Schema]] for the rules, [[Sources]] for the raw material, [[Log]] for the history.
+
+The wiki is currently empty. The first ingest will create pages and populate this index.
+
+## Categories
+
+_(Categories emerge as pages are created — nothing here is fixed.)_
+
+## Open questions
+
+Questions the wiki cannot answer yet, and sources worth finding. Queries that hit a gap and lint passes add entries here; an ingest that answers one removes it (noted in [[Log]]).
+
+_(None yet.)_
