@@ -1,0 +1,8 @@
+Append-only record of every change to the **{{SUBJECT}}** wiki. Newest entries at the bottom. Entry format: `## [YYYY-MM-DD] operation | one-line summary`, followed by created/updated notes. Operations: ingest, query, lint, sync, synthesis, edit, bootstrap. Never rewrite existing entries — read the note, append at the end, save.
+
+---
+
+## [{{DATE}}] bootstrap | wiki created
+
+- subject: **{{SUBJECT}}**
+- structure initialized: [[Index]], [[Sources]], [[Schema]], this log, the Pages view, and Quick Access pins
