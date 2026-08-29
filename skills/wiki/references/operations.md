@@ -26,6 +26,7 @@ Trigger: the user hands over a URL, PDF, transcript, or pasted text, points at a
    - A file or a URL to one (PDF, EPUB, DOCX, CSV…) → `fetch_file` (preferred for anything on the web — nothing passes through you) or `upload_file`, with `note_id` = the Sources note.
    - A web article or pasted text → either save it as markdown attached to the Sources note, or — if it's substantial enough to deserve its own note — `create_note` tagged `source` with the content, and reference it from the ledger.
    - **Add a ledger row** to the Sources table: name (`[[file:name.pdf]]` for attachments — file refs resolve here because the file is attached to this note — or a `[[wikilink]]` for source notes), type, today's date, one-line description, status `pending`.
+   - **If the source is its own note, mirror the row into properties**: `set_property({ note_id, key: "status", value: "pending" })`, and `published` when the source states a date (`set_property({ note_id, key: "published", value: "2024-03-11" })`). Leave `published` unset rather than guessing — `op: "empty"` is how lint finds the ones worth dating. An *attachment* cannot carry properties (it is a file, not a note); its ledger row is the whole record.
    - Sources are immutable from then on — read-only.
 2. **Read it.** `describe_file` first (status, outline, first lines), then `read_file` by pages/sections and `search_file` for targeted lookups. Never pull a large document whole. Extract key claims, entities (people, places, organizations), concepts, dates, numbers.
 3. **Discuss before filing when the source is substantial** — for a book chapter or dense paper, surface the key takeaways to the user first; their reactions shape what gets emphasized. For routine articles, file directly.
@@ -37,7 +38,7 @@ Trigger: the user hands over a URL, PDF, transcript, or pasted text, points at a
    - Link pages to each other with `[[Title|uuid]]` when the id is known (every create/search returns it) — a title alone can mis-resolve if duplicated.
 5. **Update the Index** with any new pages (one line each: link + one-line description, under a category — categories emerge, they are not invented ahead of pages). If the source answers an entry under **Open questions**, resolve it: remove the question and note the resolution in the log entry.
 6. **Append the Log entry** listing created/updated pages.
-7. **Flip the ledger row** on the Sources note from `pending` to `ingested`.
+7. **Flip the status in both places** — the ledger row on the Sources note from `pending` to `ingested`, and, for source notes, `set_property({ note_id, key: "status", value: "ingested" })`. The property overwrites in place (one value per note), so there is never a note claiming both. If the two disagree later, that is drift for sync to catch.
 
 Calibration: fewer than 2 page touches suggests the source is marginal to the subject — say so rather than force-filing it. More than ~15 suggests the wiki is underdeveloped in that area, which is fine early on.
 
@@ -46,6 +47,7 @@ Calibration: fewer than 2 page touches suggests the source is marginal to the su
 Trigger: the user asks a question about the subject.
 
 1. **Search the wiki** — `search_notes` for full-text, `search_notes_by_tags(["page"])` to scan pages (AND logic; `list_notes` caps at 30, so search, don't list). The Index is the map; follow `[[wikilinks]]` outward from the best hits with `list_note_links`.
+   - **When the question is about the wiki rather than the subject, use `search_notes_by_property`** — it answers what full-text cannot: `{ key: "status", op: "eq", value: "pending" }` ("what have I not read yet?"), `{ key: "published", op: "gt", value: "2024-01-01", sort: "desc" }` ("what are my newest sources?"), `{ key: "confidence", op: "eq", value: "contested" }` ("what is still unsettled?"), `{ key: "confidence", op: "empty" }` ("what has nobody judged?"). Reach for these before reading and parsing the ledger table.
 2. **Synthesize the answer from wiki pages**, citing which notes were used. If a page carries a claim needing verification, check it against the source it cites (`search_file` into the attachment) rather than trusting the page blindly.
 3. **If the wiki cannot answer**, say so — do not silently fall back to general knowledge. Offer to answer from general knowledge with clear labeling, and file the gap under **Open questions** on the Index so it becomes an ingestion target.
 4. **File good answers back.** If the answer required synthesis not yet written anywhere, offer to save it as a page (tags `["page", "synthesis"]`) or a page edit. This is how querying compounds the wiki instead of just consuming it. Read-only queries are not logged; log a `query` entry only when something is filed back.
@@ -65,16 +67,18 @@ Checks, in order of value:
 7. **Unsourced claims** — text marked `(no source yet)` or claims with no Sources section entry. List for the user to source or strike.
 8. **Single-source claims** — load-bearing claims (ones other pages build on) resting on a single source. Not an error — propose a corroborating source as an Open questions entry.
 9. **Open-question drift** — entries under **Open questions** already answered by later ingests, or stale enough to drop.
+10. **Property drift** — the typed layer disagreeing with the prose layer, found with `op: "empty"` sweeps and `search_notes_by_property`: source notes with no `status` (or a `status` that contradicts their ledger row), sources with no `published` where the source clearly states one, pages left `contested` long after the contradiction was reconciled, pages carrying no `confidence` at all. Also `list_property_defs` against the standard three — an extra key someone invented, or a missing one. Propose the fixes; never `delete_property_def` on an agent's own initiative, since it strips the value from every note in the workspace.
 
 Lint is also where new questions come from: after the checks, suggest 2–3 questions or sources that would most strengthen the wiki, and add the ones the user endorses to **Open questions**. For a learning wiki this is the growth engine — the wiki tells the user what to read next.
 
 ### Contradiction reconciliation
 
-Default rule: **newer source wins**. When two pages (or two claims on one page) conflict:
+Default rule: **newer source wins** — and "newer" means the `published` property, not the ledger's **Added** date. A 2019 paper ingested this morning is the older source; check the two sources' `published` values before deciding, and if either is unset, establish it rather than defaulting to ingest order. When two pages (or two claims on one page) conflict:
 
 - Update the affected page(s) to the newer claim.
 - Keep the superseded claim as a one-line footnote: `Previously reported as X (older source, see [[Sources]]; superseded 2026-08-26).` — this preserves the history without leaving live contradictions.
 - If recency does not settle it (equal-vintage sources, or a primary source contradicted by a newer secondary one), present both to the user and let them decide; record the decision on the page.
+- **Mark the page while it is unresolved:** `set_property({ note_id, key: "confidence", value: "contested" })`. That makes every open contradiction one query away instead of a full-text hunt for footnote wording. Set it back to `solid` (or `tentative`, when the resolution rests on a single source) once the user settles it.
 
 Never delete the losing claim silently, and never leave both claims standing unmarked.
 
@@ -84,12 +88,12 @@ Trigger: the user runs `/toolkits:wiki-sync`, mentions sources that were capture
 
 Sources arrive out-of-band: the user clips an article to a note and tags it `source`, or attaches a file directly in the app. **The `source` tag is the capture convention** — anything tagged `source` is a source, wherever it came from — **and the ledger on the Sources note is the catalog**. Sync makes them agree:
 
-1. **Collect reality:** `list_files()` for every attachment workspace-wide; `search_notes_by_tags(["source"])` for every source note; `list_notes` newest-first for recent notes that *look* like clipped sources but were never tagged (candidates only — never auto-classify).
-2. **Diff against the ledger:** missing rows (attachments or `source`-tagged notes with no row), orphan rows (pointing at nothing), stuck rows (still `pending`), untagged candidates.
-3. **Report, then apply what the user approves:** add missing rows (status `pending`; `[[file:...]]` refs only for files attached to the Sources note itself — files attached elsewhere and source notes get `[[Title|uuid]]` links); tag approved candidates `source` (preserve their existing tags — `update_note` replaces the whole set); propose orphan-row removal, never silent. Stuck `pending` rows are ingest candidates — offer, don't start.
+1. **Collect reality:** `list_files()` for every attachment workspace-wide; `search_notes_by_tags(["source"])` for every source note; `search_notes_by_property({ key: "status", op: "empty" })` for source notes never given a status; `list_notes` newest-first for recent notes that *look* like clipped sources but were never tagged (candidates only — never auto-classify).
+2. **Diff against the ledger:** missing rows (attachments or `source`-tagged notes with no row), orphan rows (pointing at nothing), stuck rows (still `pending`), untagged candidates, and **property drift** — a source note whose `status` property disagrees with its ledger row, or has none at all. Out-of-band capture is exactly where drift starts: the Chrome extension and the app set tags, never properties.
+3. **Report, then apply what the user approves:** add missing rows (status `pending`; `[[file:...]]` refs only for files attached to the Sources note itself — files attached elsewhere and source notes get `[[Title|uuid]]` links); tag approved candidates `source` (preserve their existing tags — `update_note` replaces the whole set); `set_property` `status` on every source note missing one, matching its ledger row (the ledger is the authority when the two disagree, since a human wrote it); propose orphan-row removal, never silent. Stuck `pending` rows are ingest candidates — offer, don't start.
 4. **Log a `sync` entry** (rows added, flagged, tagged). A clean sync is reported but not logged.
 
-Sync touches the ledger, tags, and Log — never the content of a source.
+Sync touches the ledger, tags, properties, and Log — never the content of a source.
 
 ## Synthesis (unsolicited insight)
 
@@ -105,5 +109,6 @@ Keep this rare and high-signal. A synthesis page that restates the Index is nois
 
 - Start each operating session by reading the Schema note (`find_note("Schema")`) and skimming the tail of the Log.
 - If a convention in the Schema repeatedly fights the actual work, propose an amendment (`update_note` the Schema with approval, log as `edit`) instead of quietly deviating. Upgrading an older wiki works the same way: diff its Schema note against the current `templates/schema-note.md.template` and propose adopting what's missing — never rewrite it wholesale.
+- **Wikis bootstrapped before properties existed have none.** `list_property_defs` returning empty in an established wiki is a missing upgrade, not a broken workspace: offer to declare the standard three (`references/bootstrap.md` step 7), then backfill `status` from the ledger rows in the same pass. Declare and backfill only with the user's go-ahead, and log it as `edit`.
 - Batch related operations into one log entry per user request, not one per note touched.
 - Rich rendering is available when it helps: Mermaid blocks for relationship diagrams, `$...$` math, tables. Keep pages markdown-first; save HTML blocks for genuinely visual answers.

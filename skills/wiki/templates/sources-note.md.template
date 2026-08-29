@@ -10,3 +10,5 @@ File refs like `[[file:name.pdf]]` resolve only on this note, because the files 
 _(No sources yet. Hand one over — a URL, a PDF, pasted text — and ask for an ingest.)_
 
 Status is `pending` (landed, not yet filed into the wiki) or `ingested` (every affected page updated — see the matching entry in [[Log]]).
+
+Sources that are their own note also carry that status as a **property**, alongside `published` (the source's own publication date, which is what settles "newer source wins" — the **Added** column above only records when it arrived here). Attached files cannot carry properties, so for them this table is the whole record. Ledger and properties must agree; a sync pass reconciles them. See [[Schema]] for the full vocabulary.
