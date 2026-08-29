@@ -20,6 +20,7 @@ This workspace has no folders. Structure comes from tags, titles, links, and vie
 | Wiki pages | Notes tagged `page` + one type tag: `concept`, `entity`, `source-summary`, `synthesis` |
 | Catalog | [[Index]] — every page listed by category, plus **Open questions** |
 | History | [[Log]] — append-only changelog |
+| Typed metadata | **properties** on notes — `status`, `published`, `confidence` (see below) |
 | Rules | this note |
 | Meta notes | Index, Sources, Log, Schema — tagged `meta`; their exact short titles are the stable handles for links |
 | Browsing | the **Pages** view (feed over tag `page`, newest-updated first) |
@@ -51,6 +52,23 @@ once the id is known.
 Page types: **concept** (an idea or theme), **entity** (a person, place, organization, work), **source-summary** (the distillation of one source), **synthesis** (a page whose sources are other wiki pages — cross-cutting insight). The type is a tag alongside `page`. Updated timestamps are automatic.
 
 Pages are written for the *next agent* as much as for the human: self-contained summary, explicit dates, claims traceable to sources.
+
+## Properties
+
+A note in this workspace carries four things: **tags** (which set it belongs to), **properties** (typed, one value each), **files** (attachments, text-extracted and searchable), and **links**. Tags and properties do different jobs and do not substitute for each other — a tag answers *is it in the set?*, a property answers *greater than / before / sorted by / which are missing?*.
+
+This wiki declares exactly three properties. Do not invent a fourth without amending this note first.
+
+| Key | Type | Set on | Meaning |
+|-----|------|--------|---------|
+| `status` | select: `pending` \| `ingested` | `source` notes | Whether the source has been filed into the wiki |
+| `published` | date | `source` notes | When the source was **published** — not when it was added here |
+| `confidence` | select: `solid` \| `tentative` \| `contested` | `page` notes | How settled the page's claims are; `contested` = a live contradiction |
+
+- **Files cannot carry properties** — a PDF attached to [[Sources]] is a file, not a note, so its ledger row is its whole record. Properties apply to `source`-tagged *notes*. The ledger stays the single catalog covering both, and the two must agree.
+- `published` is what makes the newer-source-wins rule checkable: a 2019 paper ingested today is the *older* source, even though the ledger's **Added** column says otherwise.
+- Reading them: `search_notes_by_property` — `status eq pending` is the ingest backlog, `confidence eq contested` is everything unsettled, `confidence empty` is everything unjudged, `published gt <date>` sorts the recent material.
+- Clearing one value on one note is a `clear` flag; deleting the *definition* wipes that key from every note in the workspace. Never do the second when the first was meant.
 
 ## Link conventions
 
@@ -84,12 +102,12 @@ Sources don't only arrive through an agent session. Clip an article to a note (C
 
 When the user hands over a source (URL, PDF, text):
 
-1. Land it: attach to [[Sources]] (or create a `source`-tagged note for substantial text/articles) and add a ledger row, status `pending`.
+1. Land it: attach to [[Sources]] (or create a `source`-tagged note for substantial text/articles) and add a ledger row, status `pending`. If it is its own note, set `status: pending` and — when the source states one — `published` as properties too.
 2. Read it through the file tools (outline first, then pages/sections — never whole).
 3. For each claim/entity/concept: does an existing page cover it? **If yes, edit that page in place** (the write-back rule). If no and the topic warrants a page, create one (`page` + type tag). Marginal topics get an inline wikilink mention on a related page.
 4. Cite as you write: every claim's source appears in the page's Sources section.
 5. Update [[Index]] (new pages; resolve any Open question the source answers).
-6. Append the [[Log]] entry; flip the ledger row to `ingested`.
+6. Append the [[Log]] entry; flip the ledger row to `ingested`, and the source note's `status` property with it.
 
 A real source typically touches **5–15 pages**. Fewer than 2 suggests the source is marginal; say so. More suggests the wiki is underdeveloped there — fine early on.
 
@@ -107,7 +125,7 @@ Read-only queries do not get log entries; log a `query` entry only when somethin
 
 A periodic health check — report, propose, apply only what the user approves:
 
-- **Contradictions:** opposing claims about the same fact. Default: newer source wins; keep the superseded claim as a one-line footnote (`Previously reported as X (see [[Sources]]), superseded YYYY-MM-DD.`). If recency doesn't settle it, ask.
+- **Contradictions:** opposing claims about the same fact. Default: newer source wins — by `published`, not by when it was added; keep the superseded claim as a one-line footnote (`Previously reported as X (see [[Sources]]), superseded YYYY-MM-DD.`). If recency doesn't settle it, ask. Mark the page `confidence: contested` while it is open.
 - **Stale claims:** assertions outdated by newer sources.
 - **Dangling links & orphans:** from the link-lint tooling — create-worthy pages, typos, and unlinked notes.
 - **Missing cross-references:** pages that clearly relate but don't link.
@@ -116,6 +134,7 @@ A periodic health check — report, propose, apply only what the user approves:
 - **Unsourced claims:** anything marked `(no source yet)`.
 - **Single-source claims:** load-bearing claims resting on one source — propose corroboration as an Open question.
 - **Open-question drift:** questions already answered or stale.
+- **Property drift:** source notes with no `status` or one that disagrees with its ledger row; sources missing a `published` they clearly state; pages still `contested` after the contradiction was settled; pages with no `confidence` at all.
 
 End by suggesting 2–3 questions or sources that would most strengthen the wiki; add endorsed ones to **Open questions**. Append a [[Log]] entry for any fixes made.
 
@@ -126,6 +145,7 @@ End by suggesting 2–3 questions or sources that would most strengthen the wiki
 - **Append-only [[Log]]:** never rewrite history; new entries at the bottom.
 - **Reversibility:** destructive actions (deleting notes or files, merging) are proposed to the user, never silently applied.
 - **Dates:** ISO format, `YYYY-MM-DD`.
+- **Typed where it is queried:** anything asked as *which / how many / newer than* is a property, not prose in a table cell.
 - **Tag filters are AND**, and note listing is capped — scan by search, not by listing.
 
 ## What this schema is not

@@ -30,7 +30,17 @@ Read each template with the Read tool, substitute the markers, create with `crea
 
 5. **Quick Access** — `add_to_quick_access` for Index, Sources, and Log (in that order). Sensible icons if desired (e.g. `list` for Index, `database` for Sources, `history` for Log); never required.
 6. **Pages view** — `create_view`: name `Pages`, `type: "feed"`, `tags: ["page"]`, `sort_by: "updated_at"`, `sort_direction: "desc"`. It matches nothing yet — pages appear in it as they are created.
-7. **Verify** — `list_quick_access` should show the three pins; `lint_links` should report **0 dangling, 0 orphans**. (A self-referencing link — e.g. `[[Log]]` written inside the Log note — does not resolve and shows as dangling; the templates avoid this by writing "this note"/"this log" instead. If lint reports one, that's the cause.)
+7. **Property vocabulary** — `list_property_defs` first (an empty list is the normal state of a fresh workspace), then `create_property_def` three times:
+
+   | `key` | `type` | `options` |
+   |-------|--------|-----------|
+   | `status` | `select` | `["pending", "ingested"]` |
+   | `published` | `date` | — |
+   | `confidence` | `select` | `["solid", "tentative", "contested"]` |
+
+   No values are set — the vocabulary is declared, not populated. `status` and `published` are set on `source` notes at ingest; `confidence` on pages when a lint or a contradiction makes the judgment. Every wiki declares the same three, so any agent can query any wiki without inspecting it first. If one already exists with a different type, stop and ask — do not delete and recreate a definition (that discards its value on every note; `update_property_def` renames and widens options safely).
+
+8. **Verify** — `list_quick_access` should show the three pins; `list_property_defs` the three keys; `lint_links` should report **0 dangling, 0 orphans**. (A self-referencing link — e.g. `[[Log]]` written inside the Log note — does not resolve and shows as dangling; the templates avoid this by writing "this note"/"this log" instead. If lint reports one, that's the cause.)
 
 ## What NOT to do at bootstrap
 
@@ -39,6 +49,7 @@ Read each template with the Read tool, substitute the markers, create with `crea
 - Do not add rows to the Sources ledger or pretend the user has provided anything.
 - Do not research the subject. Bootstrap is structure-only.
 - Do not create tags ahead of use — tags exist by being attached; `page`, `concept`, etc. appear with the first real page.
+- Do not set any property *values*. Declaring the three definitions is not an exception to the rule above but its opposite case: a tag springs into existence by being used, while a property **must be declared before it can be set**, and a `select`'s options are enforced on write. The definitions are structure, like the Pages view. The values are content, and there is none yet.
 
 The reason: fabricated structure ages worse than no structure — it bakes in assumptions the user hasn't made yet. An empty Pages view and a one-line Index invite a clean start.
 
@@ -47,5 +58,6 @@ The reason: fabricated structure ages worse than no structure — it bakes in as
 After creating the structure, show:
 
 1. The workspace name and the four notes created (with their ids).
-2. What's pinned to the sidebar and the Pages view.
-3. One next-step hint: "Hand me your first source — a URL, a PDF, or pasted text — and ask me to ingest it." — a hint, not a forced workflow.
+2. The three property definitions declared (`status`, `published`, `confidence`) — one line, not a lecture.
+3. What's pinned to the sidebar and the Pages view.
+4. One next-step hint: "Hand me your first source — a URL, a PDF, or pasted text — and ask me to ingest it." — a hint, not a forced workflow.

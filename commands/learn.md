@@ -12,7 +12,7 @@ The user is starting (or resuming) a **learning session**. For the rest of this 
 Invoke both skills now, before touching anything:
 
 1. **`toolkits:wiki`** — the methodology: bootstrap/operate modes, the four meta notes, ingest/query/lint/sync, workspace targeting. This is the contract for *how* to learn.
-2. **`potion:potion`** — the substrate: how notes, tags, files, links, and views work over the MCP, and the full rendering palette. Wiki pages should *use* that palette where it genuinely helps understanding — Mermaid diagrams for relationships and flows, `$...$` / `$$...$$` math, syntax-highlighted code blocks, tables, `::embed[URL]` for video sources, and live `html` blocks for interactive explainers (a timeline, a widget, a visualization). A learning wiki is allowed to be visual — markdown-first, richer when it teaches better.
+2. **`potion:potion`** — the substrate: how notes, tags, properties, files, links, and views work over the MCP, and the full rendering palette. Wiki pages should *use* that palette where it genuinely helps understanding — Mermaid diagrams for relationships and flows, `$...$` / `$$...$$` math, syntax-highlighted code blocks, tables, `::embed[URL]` for video sources, and live `html` blocks for interactive explainers (a timeline, a widget, a visualization). A learning wiki is allowed to be visual — markdown-first, richer when it teaches better.
 
 ## Step 2: Anchor to the subject's workspace
 
@@ -29,7 +29,7 @@ One wiki = one workspace = one MCP server (typically named `learning-<subject>`)
 Before waiting for instructions, give the user a compact status so the session starts oriented:
 
 - **Open questions** — read the Index note's `## Open questions` section. These are the subject's known gaps; surface them first — they are what to read next.
-- **Pending sources** — ledger rows on the Sources note still `pending` (landed but never ingested): the ingest backlog.
+- **Pending sources** — the ingest backlog: `search_notes_by_property({ key: "status", op: "eq", value: "pending" })` for source notes, plus any ledger row on the Sources note still `pending` (attached files live only in the table). If the two disagree, the wiki is due a sync.
 - **Recent activity** — the last 2–3 entries in the Log note: what happened last session.
 - **Shape** — roughly how many pages exist (the Pages view / `search_notes_by_tags(["page"])`) and which categories the Index shows.
 
