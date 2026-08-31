@@ -20,7 +20,7 @@ This is the **sync** operation of the `wiki` skill. Read that skill first (`skil
    - **Untyped sources:** `search_notes_by_property({ key: "status", op: "empty" })` — source notes that never got a `status` property. Out-of-band capture is where this drift comes from: the Chrome extension and the app set tags, never properties.
 
 3. **Diff against the ledger:**
-   - **Missing rows** — attachments (on any note) and `source`-tagged notes with no ledger row.
+   - **Missing rows** — attachments (on any note) and `source`-tagged notes with no ledger row. **This is the normal state of every extension clip** — capture writes a tag and stops — so expect these, and report them as a backlog rather than as errors.
    - **Orphan rows** — ledger rows whose file ref or wikilink points at nothing that exists.
    - **Stuck rows** — rows still `pending` (landed but never ingested).
    - **Untagged candidates** — from step 2c: notes that look like sources but carry no `source` tag and no row.
@@ -39,4 +39,5 @@ This is the **sync** operation of the `wiki` skill. Read that skill first (`skil
 
 - Report → approve → apply. Never mass-tag or mass-delete without the user seeing the list.
 - The ledger row is the catalog; the `source` tag is the capture convention; the `status` property is the queryable mirror of the row. All three must agree when sync finishes.
+- If clips keep arriving thin — link-only, no snapshot, or in the wrong workspace — pass on the capture conventions once (`skills/wiki/references/operations.md` § Sync). Fix the books first; coach second, and only once.
 - Sources stay immutable — sync touches the ledger, tags, properties, and Log, never the content of a source itself.

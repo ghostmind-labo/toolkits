@@ -94,7 +94,20 @@ Operations: `ingest`, `query`, `lint`, `sync`, `synthesis`, `edit`, `bootstrap`.
 
 ## Capturing sources out-of-band
 
-Sources don't only arrive through an agent session. Clip an article to a note (Chrome extension) and **tag it `source`** — that tag is the capture convention; anything carrying it is a source. Files can be attached directly in the app. The ledger on [[Sources]] remains the catalog: a **sync** pass reconciles the two — it finds `source`-tagged notes and attachments missing from the ledger, adds their rows (status `pending`), and flags orphan or stuck rows. Capture freely; sync keeps the books.
+Sources don't only arrive through an agent session. Clip an article to a note (Chrome or iOS share extension) and **tag it `source`** — that tag is the capture convention; anything carrying it is a source. Files can be attached directly in the app. The ledger on [[Sources]] remains the catalog: a **sync** pass reconciles the two — it finds `source`-tagged notes and attachments missing from the ledger, adds their rows (status `pending`), sets the `status` property they never got, and flags orphan or stuck rows. Capture freely; sync keeps the books.
+
+**Clipping for this wiki**, in the extension's own controls:
+
+| Control | Default | What this wiki wants |
+|---------|---------|----------------------|
+| Workspace | your **default** workspace | **this one** — a clip saved elsewhere is stranded; workspaces are isolated and nothing moves between them |
+| Content type | `plain` (or `embed`) | **Article** — extracts the page text into the note, so it stays ingestible after the link rots |
+| Page snapshot | off | **on** — attaches the full page HTML to the note; text-extracted, searchable, permanent |
+| Tags | none | **`source`**, and nothing structural else — never `page` |
+
+Pin the `source` tag (in the app) once it exists and it becomes a one-tap add in both extensions. A capture missing any of this is still recoverable — sync will find it — it just costs more at ingest.
+
+Freshly captured notes are in none of the ledger and none of the properties. `search_notes_by_tags(["source"])` is the only check that sees them; that gap is exactly what sync closes.
 
 ## Three operations
 

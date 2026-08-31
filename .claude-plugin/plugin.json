@@ -1,6 +1,6 @@
 {
   "name": "toolkits",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "description": "Ghostmind's misc skills, commands, and hooks for Claude Code.",
   "author": {
     "name": "ghostmind-dev"

@@ -29,7 +29,12 @@ One wiki = one workspace = one MCP server (typically named `learning-<subject>`)
 Before waiting for instructions, give the user a compact status so the session starts oriented:
 
 - **Open questions** — read the Index note's `## Open questions` section. These are the subject's known gaps; surface them first — they are what to read next.
-- **Pending sources** — the ingest backlog: `search_notes_by_property({ key: "status", op: "eq", value: "pending" })` for source notes, plus any ledger row on the Sources note still `pending` (attached files live only in the table). If the two disagree, the wiki is due a sync.
+- **Pending sources** — the ingest backlog lives in three populations, and a source can sit in any one of them. Check all three or the report lies:
+  1. `search_notes_by_tags(["source"])` — every source note that exists. **Anything here with no ledger row and no `status` was captured out-of-band and is invisible to the other two checks** — clips from the Chrome or iOS extension always land in exactly this state, because those surfaces set tags, never properties or ledger rows.
+  2. `search_notes_by_property({ key: "status", op: "eq", value: "pending" })` — landed and catalogued, not yet ingested.
+  3. Ledger rows on the Sources note still `pending` — the same backlog for attached files, which carry no properties.
+
+  Report the untracked count separately ("3 captured, not yet in the ledger") and offer a **sync**. If (2) and (3) disagree, that is drift and also a sync.
 - **Recent activity** — the last 2–3 entries in the Log note: what happened last session.
 - **Shape** — roughly how many pages exist (the Pages view / `search_notes_by_tags(["page"])`) and which categories the Index shows.
 
