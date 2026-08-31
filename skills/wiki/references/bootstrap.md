@@ -61,3 +61,8 @@ After creating the structure, show:
 2. The three property definitions declared (`status`, `published`, `confidence`) — one line, not a lecture.
 3. What's pinned to the sidebar and the Pages view.
 4. One next-step hint: "Hand me your first source — a URL, a PDF, or pasted text — and ask me to ingest it." — a hint, not a forced workflow.
+
+If the user captures with the Chrome or iOS share extension, add the two setup facts they cannot discover from an agent session (full conventions in `references/operations.md` § Sync):
+
+- **The extensions default to their *default* workspace**, not this one. Offer `set_default_workspace` on this wiki while they are working on the subject — that is the switch those surfaces read.
+- **Pin the `source` tag** for a one-tap add in the extensions' quick-add row. It cannot be done yet: pinning is UI-only, and the tag does not exist until a note carries it. Mention it as a step for after the first source lands.

@@ -86,7 +86,20 @@ Never delete the losing claim silently, and never leave both claims standing unm
 
 Trigger: the user runs `/toolkits:wiki-sync`, mentions sources that were captured outside a session (Chrome-extension clips, files attached in the UI), or a lint reveals ledger drift worth its own pass.
 
-Sources arrive out-of-band: the user clips an article to a note and tags it `source`, or attaches a file directly in the app. **The `source` tag is the capture convention** — anything tagged `source` is a source, wherever it came from — **and the ledger on the Sources note is the catalog**. Sync makes them agree:
+Sources arrive out-of-band: the user clips an article to a note and tags it `source`, or attaches a file directly in the app. **The `source` tag is the capture convention** — anything tagged `source` is a source, wherever it came from — **and the ledger on the Sources note is the catalog**. Sync makes them agree.
+
+### What a good capture looks like
+
+The Chrome and iOS share extensions can only ever produce a tagged note — they write no ledger row and no properties, by design. Capture should stay one gesture; sync does the bookkeeping. But three choices at clip time decide whether the capture is ingestible later, and the defaults are wrong for a wiki on all three. When the user asks how to clip for the wiki, or when a sync turns up captures that can't be ingested, tell them:
+
+- **Pick the workspace.** Both extensions show a workspace selector, pre-set to the user's **default workspace** — not to whichever wiki the agent is pinned to. A clip saved to the wrong workspace is stranded: workspaces are isolated, sync only sees the one it runs in, and there is no move-between-workspaces tool. The fix for a whole learning session is `set_default_workspace` on the subject's wiki, which is what the extensions read; offer it, never set it silently, since it changes where *every* capture lands until changed back.
+- **Clip as Article, not as a link.** The content type defaults to `plain` (or `embed` for embeddable URLs); **Article** is the one that extracts the page's main text into the note body as Markdown. A link-only clip gives an ingest nothing to read — the agent has to re-fetch the URL and may hit a paywall, a redesign, or a dead host.
+- **Add the page snapshot.** The Chrome extension can attach the full page HTML to the note as a file (`source_url` recorded). That attachment is text-extracted and searchable like any other, so it survives link rot and is readable with `describe_file` / `search_file`. It lands on the *source note*, which is the one note where `[[file:...]]` refs to it resolve.
+- **Tag it `source` and nothing structural else.** Never `page` — that pollutes the Pages view; a source and its distillation are two notes (`source-summary` is a page type). Pinning the `source` tag in the workspace puts it in the extensions' quick-add row, making it one tap. Pinning is UI-only, and the tag only exists once a note carries it — so it is a step for after the first source lands, not for bootstrap.
+
+None of this is required for a capture to be *recoverable* — a bare tagged link still syncs into the ledger. It decides how much work the ingest is.
+
+Sync steps:
 
 1. **Collect reality:** `list_files()` for every attachment workspace-wide; `search_notes_by_tags(["source"])` for every source note; `search_notes_by_property({ key: "status", op: "empty" })` for source notes never given a status; `list_notes` newest-first for recent notes that *look* like clipped sources but were never tagged (candidates only — never auto-classify).
 2. **Diff against the ledger:** missing rows (attachments or `source`-tagged notes with no row), orphan rows (pointing at nothing), stuck rows (still `pending`), untagged candidates, and **property drift** — a source note whose `status` property disagrees with its ledger row, or has none at all. Out-of-band capture is exactly where drift starts: the Chrome extension and the app set tags, never properties.
