@@ -15,7 +15,10 @@
         "second-brain",
         "postgres",
         "google-maps",
-        "git"
+        "git",
+        "ios",
+        "device",
+        "screenshot"
       ]
     }
   ]
