@@ -18,7 +18,9 @@
         "git",
         "ios",
         "device",
-        "screenshot"
+        "screenshot",
+        "youtube",
+        "gemini"
       ]
     }
   ]
