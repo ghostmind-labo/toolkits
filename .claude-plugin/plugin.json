@@ -13,12 +13,15 @@
     "postgres",
     "google-maps",
     "git",
+    "youtube",
+    "gemini",
     "productivity"
   ],
   "skills": [
     "./skills/places",
     "./skills/ports",
     "./skills/postgres",
-    "./skills/wiki"
+    "./skills/wiki",
+    "./skills/youtube-summary"
   ]
 }

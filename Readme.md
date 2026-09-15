@@ -20,6 +20,7 @@ Or from inside a session: `/plugin marketplace add ghostmind-labo/toolkits`, the
 | skill | [`wiki`](./skills/wiki) | Build and maintain a personal LLM-maintained wiki (second brain) as an Obsidian vault |
 | skill | [`places`](./skills/places) | City exploration via Google Maps — find places, directions, transit, geocoding |
 | skill | [`postgres`](./skills/postgres) | Inspect, query, and clone Postgres databases — read and copy only |
+| skill | [`youtube-summary`](./skills/youtube-summary) | Summarize or question a YouTube video from its URL via Gemini's agentic video understanding |
 | command | [`/toolkits:ship`](./commands/ship.md) | Stage → commit → push → PR into `main` → auto-merge, in one command |
 | hook | [`session chime`](./hooks/hooks.json) | Plays a gentle chime whenever Claude is waiting for your input |
 
@@ -78,6 +79,26 @@ export PGDATABASE="your-default-db"
 Verify with `psql -d postgres -c '\conninfo'`.
 
 > *"List my databases with their sizes"* · *"Describe the orders table"* · *"Clone production into production_copy"*
+
+### youtube-summary
+
+Sends a YouTube URL straight to the Gemini API with **agentic video understanding**: the
+model navigates the video's frames, audio, and transcript itself, so slides, code, and demos
+shown on screen make it into the summary — not just what was said. Falls back to static
+frame sampling when a model lacks agentic support. Modes: full summary (default), TL;DR,
+timestamped chapters, study notes, or a free-form question; can clip a time range, answer in
+another language, and save to a file.
+
+**Prerequisites:** [`deno`](https://deno.com) on PATH and a Gemini API key from
+[AI Studio](https://aistudio.google.com/apikey):
+
+```bash
+export GEMINI_API_KEY="your-api-key"
+```
+
+Public videos only. The free tier caps YouTube input at 8 hours of video per day.
+
+> *"Summarize this video"* · *"TL;DR this talk"* · *"Give me the chapters with timestamps"* · *"What did they say about pricing at 12:00?"*
 
 ---
 
