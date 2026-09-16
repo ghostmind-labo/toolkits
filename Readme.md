@@ -20,6 +20,7 @@ Or from inside a session: `/plugin marketplace add ghostmind-labo/toolkits`, the
 | skill | [`wiki`](./skills/wiki) | Build and maintain a personal LLM-maintained wiki (second brain) as an Obsidian vault |
 | skill | [`places`](./skills/places) | City exploration via Google Maps — find places, directions, transit, geocoding |
 | skill | [`postgres`](./skills/postgres) | Inspect, query, and clone Postgres databases — read and copy only |
+| skill | [`generate-image`](./skills/generate-image) | Generate and edit images, routing each job to the best model across Google and OpenAI |
 | skill | [`youtube-summary`](./skills/youtube-summary) | Summarize or question a YouTube video from its URL via Gemini's agentic video understanding |
 | command | [`/toolkits:ship`](./commands/ship.md) | Stage → commit → push → PR into `main` → auto-merge, in one command |
 | hook | [`session chime`](./hooks/hooks.json) | Plays a gentle chime whenever Claude is waiting for your input |
@@ -79,6 +80,26 @@ export PGDATABASE="your-default-db"
 Verify with `psql -d postgres -c '\conninfo'`.
 
 > *"List my databases with their sizes"* · *"Describe the orders table"* · *"Clone production into production_copy"*
+
+### generate-image
+
+Routes every image request to the model that is actually best at that job, instead of sending
+everything to one generator. Cartoons, illustrations, and icons go to **Nano Banana 2**
+(`gemini-3.1-flash-image`); photoreal and product shots to **Nano Banana Pro**; anything with
+readable words — posters, thumbnails with titles, diagrams, UI mockups — to **GPT Image 2.5
+Flare**; rough drafts to the Lite model. `--compare a,b` runs one prompt through several models
+in parallel so you can pick. OpenAI failures (no key, no credits) fall back to Google
+automatically.
+
+**Prerequisites:** [`deno`](https://deno.com) plus at least one key, read from the environment
+or `~/.env`:
+
+```bash
+export GEMINI_API_KEY="your-key"   # Google models
+export OPENAI_API_KEY="your-key"   # OpenAI models (account needs credits)
+```
+
+> *"Generate a cartoon fox"* · *"Make a YouTube thumbnail that says LAUNCH DAY"* · *"Compare both models on this prompt"* · *"Edit this image and remove the background"*
 
 ### youtube-summary
 

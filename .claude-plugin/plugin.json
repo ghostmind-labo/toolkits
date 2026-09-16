@@ -1,6 +1,6 @@
 {
   "name": "toolkits",
-  "version": "0.9.0",
+  "version": "0.10.0",
   "description": "Ghostmind's misc skills, commands, and hooks for Claude Code.",
   "author": {
     "name": "ghostmind-dev"
@@ -18,6 +18,7 @@
     "productivity"
   ],
   "skills": [
+    "./skills/generate-image",
     "./skills/places",
     "./skills/ports",
     "./skills/postgres",
