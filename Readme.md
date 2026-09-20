@@ -22,6 +22,7 @@ Or from inside a session: `/plugin marketplace add ghostmind-labo/toolkits`, the
 | skill | [`postgres`](./skills/postgres) | Inspect, query, and clone Postgres databases — read and copy only |
 | skill | [`generate-image`](./skills/generate-image) | Generate and edit images, routing each job to the best model across Google and OpenAI |
 | skill | [`youtube-summary`](./skills/youtube-summary) | Summarize or question a YouTube video from its URL via Gemini's agentic video understanding |
+| skill | [`image-exchange`](./skills/image-exchange) | Export a screenshot to a private GCS bucket and get a URL, import it back elsewhere — hand images between agents and projects |
 | command | [`/toolkits:ship`](./commands/ship.md) | Stage → commit → push → PR into `main` → auto-merge, in one command |
 | hook | [`session chime`](./hooks/hooks.json) | Plays a gentle chime whenever Claude is waiting for your input |
 
@@ -91,8 +92,16 @@ Flare**; rough drafts to the Lite model. `--compare a,b` runs one prompt through
 in parallel so you can pick. OpenAI failures (no key, no credits) fall back to Google
 automatically.
 
-**Prerequisites:** [`deno`](https://deno.com) plus at least one key, read from the environment
-or `~/.env`:
+Generation is only half of it. A bundled Python tool (`scripts/edit.py`) handles what comes
+after, locally and for free: cut an image into a grid, adjust contrast/brightness/saturation,
+crop to a ratio (centre or content-aware), trim borders, letterbox, resize, convert formats,
+build an icon set, trace a logo to **SVG**, pull the **colour palette** as hex, tile images into
+a labelled comparison sheet, export a **PDF**, or remove the background. It runs through
+`uv run --script`, which installs its own dependencies into a cached environment — no global
+installs, nothing to set up.
+
+**Prerequisites:** [`deno`](https://deno.com), [`uv`](https://docs.astral.sh/uv/) for the editing
+tool, plus at least one key, read from the environment or `~/.env`:
 
 ```bash
 export GEMINI_API_KEY="your-key"   # Google models
@@ -120,6 +129,31 @@ export GEMINI_API_KEY="your-api-key"
 Public videos only. The free tier caps YouTube input at 8 hours of video per day.
 
 > *"Summarize this video"* · *"TL;DR this talk"* · *"Give me the chapters with timestamps"* · *"What did they say about pricing at 12:00?"*
+
+### image-exchange
+
+Moves images between machines, projects and agents through a **private** Google Cloud
+Storage bucket. `export` uploads a local screenshot and prints its
+`https://storage.googleapis.com/...` URL — a handle to store in a record or pass to another
+agent. `import` turns that URL (or any `gs://` path) back into a local file, reading through
+gcloud, so it works on any machine logged into an account with access and nothing is exposed
+anonymously. No service account, no API key; the bucket is created on first use.
+
+Built for one workflow: spot a visual bug while working on a project, screenshot it, export
+it, and file a Potion record (`bug` structure: date, type, description, image_url) pointing
+at the URL. Later, from the project that owns the bug, list the open records, import the
+screenshot, and look at it while fixing.
+
+**Prerequisites:** [`gcloud`](https://cloud.google.com/sdk) logged in (`gcloud auth login`).
+Project and bucket resolve from flags, the environment, or `~/.env`:
+
+```bash
+export GCP_PROJECT_ID="your-project"          # else gcloud's core/project
+export GCS_IMAGE_BUCKET="your-bucket"         # else <project>-images
+export GCS_IMAGE_LOCATION="us-central1"       # only used when creating the bucket
+```
+
+> *"Upload this screenshot and give me the URL"* · *"File this as a bug with the image"* · *"Get the screenshot from that bug record"*
 
 ---
 
