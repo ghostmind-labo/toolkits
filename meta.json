@@ -16,6 +16,7 @@
         "tabs": [
           {
             "label": "claude",
+            "prefix": false,
             "layout": "compact",
             "compact": {
               "type": "single",
@@ -30,6 +31,7 @@
           },
           {
             "label": "shell",
+            "prefix": false,
             "layout": "compact",
             "compact": {
               "type": "two-by-two",
