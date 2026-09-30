@@ -23,6 +23,8 @@ Or from inside a session: `/plugin marketplace add ghostmind-labo/toolkits`, the
 | skill | [`generate-image`](./skills/generate-image) | Generate and edit images, routing each job to the best model across Google and OpenAI |
 | skill | [`youtube-summary`](./skills/youtube-summary) | Summarize or question a YouTube video from its URL via Gemini's agentic video understanding |
 | skill | [`image-exchange`](./skills/image-exchange) | Export a screenshot to a private GCS bucket and get a URL, import it back elsewhere — hand images between agents and projects |
+| skill | [`agent-channel-read`](./skills/agent-channel-read) | Read, claim and watch messages that other Claude sessions left on the Potion `agent-channel` |
+| skill | [`agent-channel-write`](./skills/agent-channel-write) | Send a self-contained message to a Claude session in another project through the Potion `agent-channel` |
 | command | [`/toolkits:ship`](./commands/ship.md) | Stage → commit → push → PR into `main` → auto-merge, in one command |
 | hook | [`session chime`](./hooks/hooks.json) | Plays a gentle chime whenever Claude is waiting for your input |
 
@@ -154,6 +156,23 @@ export GCS_IMAGE_LOCATION="us-central1"       # only used when creating the buck
 ```
 
 > *"Upload this screenshot and give me the URL"* · *"File this as a bug with the image"* · *"Get the screenshot from that bug record"*
+
+### agent-channel-read / agent-channel-write
+
+A message bus between Claude sessions running in different projects and terminals. The
+channel is the `agent-channel` structure in a Potion workspace; each row is one message
+(`kind`, `status`, `to_project`, `from_session`, `thread`, `body`, `result`…).
+`agent-channel-write` writes a self-contained message addressed to a project (and
+optionally a specific session). `agent-channel-read` picks up the newest message, asks
+before claiming a directive, and writes the result back onto the same row. Pass `watch`
+and it holds Potion's live record watch open through `scripts/watch.sh`, raising an event
+when a message arrives for this project or when one it sent gets answered.
+
+**Prerequisites:** a connected Potion MCP whose workspace has an `agent-channel`
+structure. For `watch`, also `curl`, `jq` and `POTION_API_KEY` (in the environment or
+`~/.env`).
+
+> *"Tell the ensemble session the tests pass"* · *"Check the agent channel"* · *"Watch the channel for replies"*
 
 ---
 

@@ -1,6 +1,6 @@
 {
   "name": "toolkits",
-  "version": "0.12.0",
+  "version": "0.13.0",
   "description": "Ghostmind's misc skills, commands, and hooks for Claude Code.",
   "author": {
     "name": "ghostmind-dev"
@@ -18,9 +18,13 @@
     "productivity",
     "gcs",
     "screenshots",
-    "images"
+    "images",
+    "potion",
+    "agents"
   ],
   "skills": [
+    "./skills/agent-channel-read",
+    "./skills/agent-channel-write",
     "./skills/generate-image",
     "./skills/image-exchange",
     "./skills/places",
