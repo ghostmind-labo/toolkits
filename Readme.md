@@ -22,7 +22,7 @@ Or from inside a session: `/plugin marketplace add ghostmind-labo/toolkits`, the
 | skill | [`postgres`](./skills/postgres) | Inspect, query, and clone Postgres databases — read and copy only |
 | skill | [`generate-image`](./skills/generate-image) | Generate and edit images, routing each job to the best model across Google and OpenAI |
 | skill | [`youtube-summary`](./skills/youtube-summary) | Summarize or question a YouTube video from its URL via Gemini's agentic video understanding |
-| skill | [`image-exchange`](./skills/image-exchange) | Export a screenshot to a private GCS bucket and get a URL, import it back elsewhere — hand images between agents and projects |
+| skill | [`file-exchange`](./skills/file-exchange) | Export a file to a GCS bucket and get a URL — private to hand screenshots and files between agents and projects, or public for a link anyone can open |
 | skill | [`agent-channel-read`](./skills/agent-channel-read) | Read, claim and watch messages that other Claude sessions left on the Potion `agent-channel` |
 | skill | [`agent-channel-write`](./skills/agent-channel-write) | Send a self-contained message to a Claude session in another project through the Potion `agent-channel` |
 | command | [`/toolkits:ship`](./commands/ship.md) | Stage → commit → push → PR into `main` → auto-merge, in one command |
@@ -132,14 +132,19 @@ Public videos only. The free tier caps YouTube input at 8 hours of video per day
 
 > *"Summarize this video"* · *"TL;DR this talk"* · *"Give me the chapters with timestamps"* · *"What did they say about pricing at 12:00?"*
 
-### image-exchange
+### file-exchange
 
-Moves images between machines, projects and agents through a **private** Google Cloud
-Storage bucket. `export` uploads a local screenshot and prints its
+Moves images and other files between machines, projects and agents through a **private**
+Google Cloud Storage bucket, or publishes them to a **public** one with `--public`. `export` uploads a local screenshot and prints its
 `https://storage.googleapis.com/...` URL — a handle to store in a record or pass to another
 agent. `import` turns that URL (or any `gs://` path) back into a local file, reading through
 gcloud, so it works on any machine logged into an account with access and nothing is exposed
 anonymously. No service account, no API key; the bucket is created on first use.
+
+`export --public` uploads to a second, public bucket instead and prints a URL anyone can
+open without a login. That bucket is also created on first use (readable by URL, not
+listable); an existing bucket is never reconfigured, the script only checks that the URL
+really answers anonymously before printing it.
 
 Built for one workflow: spot a visual bug while working on a project, screenshot it, export
 it, and file a Potion record (`bug` structure: date, type, description, image_url) pointing
@@ -151,11 +156,12 @@ Project and bucket resolve from flags, the environment, or `~/.env`:
 
 ```bash
 export GCP_PROJECT_ID="your-project"          # else gcloud's core/project
-export GCS_IMAGE_BUCKET="your-bucket"         # else <project>-images
+export GCS_IMAGE_BUCKET="your-bucket"         # private, else <project>-images
+export GCS_PUBLIC_BUCKET="your-public-bucket" # used by --public, else <project>-public
 export GCS_IMAGE_LOCATION="us-central1"       # only used when creating the bucket
 ```
 
-> *"Upload this screenshot and give me the URL"* · *"File this as a bug with the image"* · *"Get the screenshot from that bug record"*
+> *"Upload this screenshot and give me the URL"* · *"File this as a bug with the image"* · *"Get the screenshot from that bug record"* · *"Give me a public link for this PDF"*
 
 ### agent-channel-read / agent-channel-write
 

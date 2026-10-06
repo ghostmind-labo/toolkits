@@ -1,22 +1,25 @@
 #!/usr/bin/env bash
-# image-exchange — move images between machines, projects and agents through a
-# Google Cloud Storage bucket, using whatever account gcloud is logged into.
+# file-exchange — move files (screenshots, PDFs, anything) between machines, projects and
+# agents through a Google Cloud Storage bucket, using whatever account gcloud is
+# logged into. Private by default; --public gives a link anyone can open.
 #
-#   image-exchange.sh export <file>... [--prefix p] [--name n] [--json]
-#   image-exchange.sh import <url|gs://...>... [--out dir] [--json]
-#   image-exchange.sh list [prefix] [--limit n]
-#   image-exchange.sh setup
-#   image-exchange.sh whoami
+#   file-exchange.sh export <file>... [--public] [--prefix p] [--name n] [--json]
+#   file-exchange.sh import <url|gs://...>... [--out dir] [--json]
+#   file-exchange.sh list [prefix] [--public] [--limit n]
+#   file-exchange.sh setup [--public]
+#   file-exchange.sh whoami
 #
 # Configuration (flag > environment > ~/.env > default):
-#   --project / GCP_PROJECT_ID   GCP project owning the bucket (else gcloud's core/project)
-#   --bucket  / GCS_IMAGE_BUCKET bucket name (default: <project>-images)
-#   GCS_IMAGE_LOCATION           location used when creating the bucket (default: us-central1)
+#   --project / GCP_PROJECT_ID    GCP project owning the buckets (else gcloud's core/project)
+#   --bucket  / GCS_IMAGE_BUCKET  private bucket (default: <project>-images)
+#   --bucket  / GCS_PUBLIC_BUCKET public bucket, used with --public (default: <project>-public)
+#   GCS_IMAGE_LOCATION            location used when creating a bucket (default: us-central1)
 #
 # Exported files print one URL per line on stdout:
 #   https://storage.googleapis.com/<bucket>/<prefix>/<timestamp>-<slug>.<ext>
-# The bucket is private: that URL is the handle to pass around, and `import`
-# reads it back through gcloud on any machine logged into an account with access.
+# Private bucket: that URL is a handle to pass around, and `import` reads it back
+# through gcloud on any machine logged into an account with access.
+# Public bucket (--public): the URL opens for anyone, no login.
 # Imported files print one local path per line on stdout.
 # Everything else goes to stderr.
 
@@ -37,10 +40,15 @@ env_file_value() {
 }
 
 PROJECT="${GCP_PROJECT_ID:-}"
-BUCKET="${GCS_IMAGE_BUCKET:-}"
+PRIVATE_BUCKET="${GCS_IMAGE_BUCKET:-}"
+BUCKET=""
+PUBLIC_BUCKET="${GCS_PUBLIC_BUCKET:-}"
+BUCKET_FLAG=""
+PUBLIC=0
 LOCATION="${GCS_IMAGE_LOCATION:-}"
 [ -n "$PROJECT" ] || PROJECT="$(env_file_value GCP_PROJECT_ID)"
-[ -n "$BUCKET" ]  || BUCKET="$(env_file_value GCS_IMAGE_BUCKET)"
+[ -n "$PRIVATE_BUCKET" ] || PRIVATE_BUCKET="$(env_file_value GCS_IMAGE_BUCKET)"
+[ -n "$PUBLIC_BUCKET" ] || PUBLIC_BUCKET="$(env_file_value GCS_PUBLIC_BUCKET)"
 [ -n "$LOCATION" ] || LOCATION="$(env_file_value GCS_IMAGE_LOCATION)"
 [ -n "$LOCATION" ] || LOCATION="us-central1"
 
@@ -56,7 +64,15 @@ resolve_project() {
 
 resolve_bucket() {
   resolve_project
-  [ -n "$BUCKET" ] || BUCKET="${PROJECT}-images"
+  [ -n "$PRIVATE_BUCKET" ] || PRIVATE_BUCKET="${PROJECT}-images"
+  [ -n "$PUBLIC_BUCKET" ] || PUBLIC_BUCKET="${PROJECT}-public"
+  if [ -n "$BUCKET_FLAG" ]; then
+    BUCKET="$BUCKET_FLAG"
+  elif [ "$PUBLIC" -eq 1 ]; then
+    BUCKET="$PUBLIC_BUCKET"
+  else
+    BUCKET="$PRIVATE_BUCKET"
+  fi
 }
 
 active_account() {
@@ -72,13 +88,25 @@ require_auth() {
   fi
 }
 
-# Create the bucket if missing. It stays private: readers use `import` with a gcloud login.
+# Create the bucket if missing. An existing bucket is never reconfigured.
+# Private: readers use `import` with a gcloud login.
+# Public (--public): allUsers may read objects by URL, but not list the bucket.
 ensure_bucket() {
   resolve_bucket
   if gcloud storage buckets describe "gs://${BUCKET}" --project="$PROJECT" >/dev/null 2>&1; then
     return 0
   fi
   note "Bucket gs://${BUCKET} not found in project ${PROJECT}; creating it in ${LOCATION}..."
+  if [ "$PUBLIC" -eq 1 ]; then
+    gcloud storage buckets create "gs://${BUCKET}" \
+      --project="$PROJECT" --location="$LOCATION" \
+      --uniform-bucket-level-access --no-public-access-prevention >&2
+    gcloud storage buckets add-iam-policy-binding "gs://${BUCKET}" \
+      --member=allUsers --role=roles/storage.legacyObjectReader >/dev/null \
+      || die "bucket created but could not be made public — an org policy may forbid allUsers (see: $(make_public_hint))"
+    note "Bucket created (PUBLIC: every object in it is readable by anyone with its URL)."
+    return 0
+  fi
   gcloud storage buckets create "gs://${BUCKET}" \
     --project="$PROJECT" --location="$LOCATION" \
     --uniform-bucket-level-access --public-access-prevention >&2
@@ -86,6 +114,20 @@ ensure_bucket() {
 }
 
 # --- helpers ------------------------------------------------------------------
+
+make_public_hint() {
+  echo "gcloud storage buckets update gs://${BUCKET} --no-public-access-prevention && gcloud storage buckets add-iam-policy-binding gs://${BUCKET} --member=allUsers --role=roles/storage.legacyObjectReader"
+}
+
+# True once the URL answers an anonymous request. A fresh IAM binding can take a few seconds.
+anonymously_readable() {
+  local i
+  for i in 1 2 3 4 5; do
+    curl -fsS -o /dev/null -r 0-0 "$1" 2>/dev/null && return 0
+    sleep 2
+  done
+  return 1
+}
 
 slugify() {
   echo "$1" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9]+/-/g; s/^-+//; s/-+$//' | cut -c1-60
@@ -110,8 +152,12 @@ cmd_whoami() {
   resolve_bucket
   echo "account:  $(active_account)"
   echo "project:  $PROJECT"
-  echo "bucket:   gs://$BUCKET"
-  echo "base url: https://storage.googleapis.com/$BUCKET/  (private; read with: import <url>)"
+  if [ -n "$BUCKET_FLAG" ]; then
+    echo "bucket:   gs://$BUCKET  (from --bucket)"
+    return 0
+  fi
+  echo "private:  https://storage.googleapis.com/$PRIVATE_BUCKET/  (default; read with: import <url>)"
+  echo "public:   https://storage.googleapis.com/$PUBLIC_BUCKET/  (with --public; open to anyone)"
 }
 
 cmd_setup() {
@@ -121,7 +167,7 @@ cmd_setup() {
 }
 
 cmd_export() {
-  local prefix="images" name="" json=0
+  local prefix="files" name="" json=0
   local -a files=()
   while [ $# -gt 0 ]; do
     case "$1" in
@@ -142,7 +188,7 @@ cmd_export() {
   prefix="${prefix#/}"; prefix="${prefix%/}"
 
   local out_json="["
-  local first=1
+  local first=1 first_public=1
   for f in "${files[@]}"; do
     local base ext stem key
     base="$(basename "$f")"
@@ -161,6 +207,11 @@ cmd_export() {
       || die "upload failed for $f"
 
     local url="https://storage.googleapis.com/${BUCKET}/${key}"
+    if [ "$PUBLIC" -eq 1 ] && [ "$first_public" -eq 1 ]; then
+      first_public=0
+      anonymously_readable "$url" \
+        || die "uploaded to gs://${BUCKET}/${key}, but the URL is not public. This script never changes access on a bucket it did not create. To open the WHOLE bucket to anyone, run: $(make_public_hint)"
+    fi
     if [ "$json" -eq 1 ]; then
       [ "$first" -eq 1 ] || out_json+=","
       first=0
@@ -174,7 +225,7 @@ cmd_export() {
 }
 
 cmd_import() {
-  local out="imported-images" json=0
+  local out="imported-files" json=0
   local -a srcs=()
   while [ $# -gt 0 ]; do
     case "$1" in
@@ -246,7 +297,9 @@ args=()
 while [ $# -gt 0 ]; do
   case "$1" in
     --project) PROJECT="$2"; shift 2 ;;
-    --bucket) BUCKET="$2"; shift 2 ;;
+    --bucket) BUCKET_FLAG="$2"; shift 2 ;;
+    --public) PUBLIC=1; shift ;;
+    --private) PUBLIC=0; shift ;;
     *) args+=("$1"); shift ;;
   esac
 done
@@ -260,6 +313,6 @@ case "$cmd" in
   list) cmd_list "$@" ;;
   setup) cmd_setup ;;
   whoami) cmd_whoami ;;
-  ""|-h|--help|help) sed -n '2,20p' "$0" | sed 's/^# \{0,1\}//' ;;
+  ""|-h|--help|help) sed -n '2,24p' "$0" | sed 's/^# \{0,1\}//' ;;
   *) die "unknown command: $cmd (export | import | list | setup | whoami)" ;;
 esac
