@@ -17,7 +17,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/speak.sh stop",
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/speak.sh\" stop",
             "timeout": 10
           }
         ]
@@ -40,7 +40,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/speak.sh prompt",
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/speak.sh\" prompt",
             "timeout": 5
           }
         ]
