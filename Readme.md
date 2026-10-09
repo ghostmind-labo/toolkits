@@ -28,7 +28,6 @@ Or from inside a session: `/plugin marketplace add ghostmind-labo/toolkits`, the
 | command | [`/toolkits:ship`](./commands/ship.md) | Stage → commit → push → PR into `main` → auto-merge, in one command |
 | hook | [`session chime`](./hooks/hooks.json) | Plays a gentle chime whenever Claude is waiting for your input |
 | hook | [`spoken summary`](./hooks/speak.sh) | Reads the summary of a reply aloud, only when asked: "out loud" in a prompt, or "voice on" |
-| skill | [`eli5`](./skills/eli5) | Explain a topic, some code or an error at the level of a named audience |
 | mod | [`session-name`](./mods/session-name) | Always shows this session's name above the prompt: the name other Claude sessions message it by. |
 | mod | [`session-badge`](./mods/session-badge) | A colourful always-on badge above the prompt: this session's name, whether it is working, turns, tool calls, messages from other sessions, uptime and a sparkline of recent turns. |
 | mod | [`session-beacon`](./mods/session-beacon) | A band above the prompt showing this session's peer name and whether it is receiving from or sending to another session. |
