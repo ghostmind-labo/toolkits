@@ -1,5 +1,5 @@
 {
-  "description": "Play a chime when Claude finishes a turn, and a distinct one when Claude is blocked waiting on the user.",
+  "description": "Play a chime when Claude finishes a turn, and a distinct one when Claude is blocked waiting on the user. Read a reply's summary aloud, on demand.",
   "hooks": {
     "Stop": [
       {
@@ -8,6 +8,16 @@
           {
             "type": "command",
             "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/play-sound.sh input-needed.wav",
+            "timeout": 10
+          }
+        ]
+      },
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/speak.sh\" stop",
             "timeout": 10
           }
         ]
@@ -21,6 +31,17 @@
             "type": "command",
             "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/play-sound.sh attention-needed.wav",
             "timeout": 10
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/speak.sh\" prompt",
+            "timeout": 5
           }
         ]
       }

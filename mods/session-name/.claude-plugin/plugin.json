@@ -1,0 +1,6 @@
+{
+  "name": "session-name",
+  "version": "0.1.0",
+  "description": "Always shows this session's name above the prompt: the name other Claude sessions message it by.",
+  "types": "./types/index.d.ts"
+}

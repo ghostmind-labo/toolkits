@@ -3,7 +3,7 @@
   "owner": {
     "name": "ghostmind-dev"
   },
-  "description": "Ghostmind's misc skills, commands, and hooks, as a single installable Claude Code plugin.",
+  "description": "Ghostmind's misc skills, commands, and hooks as one Claude Code plugin, and our mods as plugins of their own.",
   "plugins": [
     {
       "name": "toolkits",
@@ -23,6 +23,46 @@
         "gemini",
         "potion",
         "agents"
+      ]
+    },
+    {
+      "name": "session-name",
+      "source": "./mods/session-name",
+      "description": "Always shows this session's name above the prompt: the name other Claude sessions message it by.",
+      "category": "productivity",
+      "keywords": [
+        "mod",
+        "sessions"
+      ]
+    },
+    {
+      "name": "session-badge",
+      "source": "./mods/session-badge",
+      "description": "A colourful always-on badge above the prompt: this session's name, whether it is working, turns, tool calls, messages from other sessions, uptime and a sparkline of recent turns.",
+      "category": "productivity",
+      "keywords": [
+        "mod",
+        "sessions"
+      ]
+    },
+    {
+      "name": "session-beacon",
+      "source": "./mods/session-beacon",
+      "description": "A band above the prompt showing this session's peer name and whether it is receiving from or sending to another session.",
+      "category": "productivity",
+      "keywords": [
+        "mod",
+        "sessions"
+      ]
+    },
+    {
+      "name": "session-inbox",
+      "source": "./mods/session-inbox",
+      "description": "A pane that shows this session's name (the address other sessions message it at) and the messages that arrive from other sessions.",
+      "category": "productivity",
+      "keywords": [
+        "mod",
+        "sessions"
       ]
     }
   ]

@@ -27,6 +27,12 @@ Or from inside a session: `/plugin marketplace add ghostmind-labo/toolkits`, the
 | skill | [`agent-channel-write`](./skills/agent-channel-write) | Send a self-contained message to a Claude session in another project through the Potion `agent-channel` |
 | command | [`/toolkits:ship`](./commands/ship.md) | Stage → commit → push → PR into `main` → auto-merge, in one command |
 | hook | [`session chime`](./hooks/hooks.json) | Plays a gentle chime whenever Claude is waiting for your input |
+| hook | [`spoken summary`](./hooks/speak.sh) | Reads the summary of a reply aloud, only when asked: "out loud" in a prompt, or "voice on" |
+| skill | [`eli5`](./skills/eli5) | Explain a topic, some code or an error at the level of a named audience |
+| mod | [`session-name`](./mods/session-name) | Always shows this session's name above the prompt: the name other Claude sessions message it by. |
+| mod | [`session-badge`](./mods/session-badge) | A colourful always-on badge above the prompt: this session's name, whether it is working, turns, tool calls, messages from other sessions, uptime and a sparkline of recent turns. |
+| mod | [`session-beacon`](./mods/session-beacon) | A band above the prompt showing this session's peer name and whether it is receiving from or sending to another session. |
+| mod | [`session-inbox`](./mods/session-inbox) | A pane that shows this session's name (the address other sessions message it at) and the messages that arrive from other sessions. |
 
 Skills activate on their own when you ask a matching question — no invocation needed.
 
@@ -197,6 +203,29 @@ Requires an authenticated [`gh`](https://cli.github.com) CLI.
 
 ---
 
+## Mods
+
+A mod changes Claude Code's own interface: a band above the prompt, a pane, a badge. Each one
+is a small plugin of its own under `mods/`, listed in this marketplace next to `toolkits`, so
+it is installed by name:
+
+```bash
+claude plugin install session-name@ghostmind-toolkits
+```
+
+| Mod | What it adds |
+|---|---|
+| `session-name` | Always shows this session's name above the prompt: the name other Claude sessions message it by. |
+| `session-badge` | A colourful always-on badge above the prompt: this session's name, whether it is working, turns, tool calls, messages from other sessions, uptime and a sparkline of recent turns. |
+| `session-beacon` | A band above the prompt showing this session's peer name and whether it is receiving from or sending to another session. |
+| `session-inbox` | A pane that shows this session's name (the address other sessions message it at) and the messages that arrive from other sessions. |
+
+`session-name` is the one in daily use; the other three are earlier takes on the same idea,
+kept so they are not lost. To work on one, copy its folder to `~/.claude/mods/` and Claude Code
+reloads it as you edit.
+
+---
+
 ## Hook
 
 ### Session chime
@@ -241,6 +270,31 @@ Tweak the constants at the top of the script: `AMPLITUDE` (volume, default `0.13
 > **Note:** hooks load at session start. After installing the plugin or editing the hook,
 > restart Claude Code for the chime to take effect.
 
+### Spoken summary
+
+Reads the summary of a reply aloud, in a natural voice, and only when asked. It stays silent
+otherwise.
+
+| You send | What happens |
+|---|---|
+| a prompt containing `out loud` or `read it back` | that one reply is spoken |
+| `voice on` | every reply is spoken until `voice off` |
+| `voice off` | stops, and cuts off anything still playing |
+| `voice <name>` | changes the voice; it introduces itself |
+| `voice` | shows whether it is on, the current voice and the list |
+
+**What is spoken** is the opening paragraph of the reply, where the summary sits, with the
+markdown removed. Headings, tables, lists and code are skipped.
+
+**The voice** is ElevenLabs (`elevenlabs/eleven-v4`) through
+[OpenRouter's speech endpoint](https://openrouter.ai/docs/guides/overview/multimodal/tts).
+It needs `OPENROUTER_API_KEY` in the environment Claude Code starts from. A summary costs
+well under a cent. Set `SPEAK_MODEL` or `SPEAK_VOICE` to try another model or voice.
+
+The request and the playback run in the background, so the terminal is never held; the audio
+starts about three seconds after the reply ends. macOS only for now (`afplay`). Its state
+(the chosen voice, the last clip, a log) lives in `~/.claude/speak/`.
+
 ---
 
 ## Local development
@@ -260,6 +314,7 @@ Layout:
 skills/<name>/SKILL.md
 commands/            # slash commands
 hooks/               # hooks.json + scripts
+mods/                # one folder per mod, each a plugin of its own
 assets/              # bundled binary assets
 scripts/             # maintenance scripts
 ```

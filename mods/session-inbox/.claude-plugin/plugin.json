@@ -1,0 +1,6 @@
+{
+  "name": "session-inbox",
+  "version": "0.1.0",
+  "description": "A pane that shows this session's name (the address other sessions message it at) and the messages that arrive from other sessions.",
+  "types": "./types/index.d.ts"
+}

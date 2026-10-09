@@ -1,0 +1,6 @@
+{
+  "name": "session-beacon",
+  "version": "0.1.0",
+  "description": "A band above the prompt showing this session's peer name and whether it is receiving from or sending to another session.",
+  "types": "./types/index.d.ts"
+}

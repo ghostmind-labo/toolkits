@@ -1,0 +1,6 @@
+{
+  "name": "session-badge",
+  "version": "0.1.0",
+  "description": "A colourful always-on badge above the prompt: this session's name, whether it is working, turns, tool calls, messages from other sessions, uptime and a sparkline of recent turns.",
+  "types": "./types/index.d.ts"
+}
