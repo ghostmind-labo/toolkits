@@ -27,6 +27,7 @@ Or from inside a session: `/plugin marketplace add ghostmind-labo/toolkits`, the
 | skill | [`agent-channel-write`](./skills/agent-channel-write) | Send a self-contained message to a Claude session in another project through the Potion `agent-channel` |
 | command | [`/toolkits:ship`](./commands/ship.md) | Stage → commit → push → PR into `main` → auto-merge, in one command |
 | hook | [`session chime`](./hooks/hooks.json) | Plays a gentle chime whenever Claude is waiting for your input |
+| hook | [`spoken summary`](./hooks/speak.sh) | Reads the summary of a reply aloud, only when asked: "out loud" in a prompt, or "voice on" |
 
 Skills activate on their own when you ask a matching question — no invocation needed.
 
@@ -240,6 +241,31 @@ Tweak the constants at the top of the script: `AMPLITUDE` (volume, default `0.13
 
 > **Note:** hooks load at session start. After installing the plugin or editing the hook,
 > restart Claude Code for the chime to take effect.
+
+### Spoken summary
+
+Reads the summary of a reply aloud, in a natural voice, and only when asked. It stays silent
+otherwise.
+
+| You send | What happens |
+|---|---|
+| a prompt containing `out loud` or `read it back` | that one reply is spoken |
+| `voice on` | every reply is spoken until `voice off` |
+| `voice off` | stops, and cuts off anything still playing |
+| `voice <name>` | changes the voice; it introduces itself |
+| `voice` | shows whether it is on, the current voice and the list |
+
+**What is spoken** is the opening paragraph of the reply, where the summary sits, with the
+markdown removed. Headings, tables, lists and code are skipped.
+
+**The voice** is ElevenLabs (`elevenlabs/eleven-v4`) through
+[OpenRouter's speech endpoint](https://openrouter.ai/docs/guides/overview/multimodal/tts).
+It needs `OPENROUTER_API_KEY` in the environment Claude Code starts from. A summary costs
+well under a cent. Set `SPEAK_MODEL` or `SPEAK_VOICE` to try another model or voice.
+
+The request and the playback run in the background, so the terminal is never held; the audio
+starts about three seconds after the reply ends. macOS only for now (`afplay`). Its state
+(the chosen voice, the last clip, a log) lives in `~/.claude/speak/`.
 
 ---
 
