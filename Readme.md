@@ -26,6 +26,8 @@ Or from inside a session: `/plugin marketplace add ghostmind-labo/toolkits`, the
 | skill | [`agent-channel-read`](./skills/agent-channel-read) | Read, claim and watch messages that other Claude sessions left on the Potion `agent-channel` |
 | skill | [`agent-channel-write`](./skills/agent-channel-write) | Send a self-contained message to a Claude session in another project through the Potion `agent-channel` |
 | skill | [`understand`](./skills/understand) | Explain something in the format that is easiest to take in: Simplified Technical English, a diagram, an HTML page, or a narrated explainer video |
+| skill | [`muse`](./skills/muse) | Make any piece of work with one influential figure from a random era at its core: their method, not their trademarks |
+| skill | [`evolve`](./skills/evolve) | Get the best result for a goal by evolving the brief: variants run on fresh agents, the results are judged, the winner is tweaked and run again |
 | command | [`/toolkits:ship`](./commands/ship.md) | Stage → commit → push → PR into `main` → auto-merge, in one command |
 | command | [`/toolkits:bump`](./commands/bump.md) | Ask for the bump level, write the plugin's new version, then ship |
 | hook | [`session chime`](./hooks/hooks.json) | Plays a gentle chime whenever Claude is waiting for your input |
@@ -206,6 +208,36 @@ cairo library (`brew install cairo`). The voice is ElevenLabs through
 OpenRouter when `OPENROUTER_API_KEY` is set, and the free macOS `say` voice otherwise.
 
 > *"Explain this diff in STE"* · *"Draw me a diagram of the auth flow"* · *"Explain this as a web page"* · *"Make a 3b1b style video on binary search"*
+
+### muse
+
+Puts one person from history behind whatever you ask for: a recipe, a UI, a piece of music, a
+Potion note, a plan. A script draws an era, a part of the world and a discipline at random,
+so that the choice does not fall on the same famous few; the skill then names a real figure
+from that draw, dead and with a lasting influence, and often from a field far from the work.
+It takes three to five things about how that person worked (what they started from, what they
+left out, how they ordered a piece) and turns each into a decision in your medium. The
+substance stays yours: the recipe is still food you can cook, the UI still usable. A short
+note after the work says who it was and what came from them.
+
+You can also name the figure, the era or the field yourself.
+
+> *"Give me a risotto recipe, with a muse"* · *"Design this settings page in the spirit of someone"* · *"A note on sleep, the way Bach would build it"*
+
+### evolve
+
+Treats the way a goal is explained to an AI as something that evolves. It writes the goal as
+a brief, with three to five fixed criteria for judging a result. Each generation runs a few
+variants of the brief in parallel, each on a fresh agent that sees the brief and nothing else,
+and each with one change (framing, context, examples, constraints, process, form) so that a
+better result can be traced to its cause. The results are compared blind and in pairs; the
+winner becomes the parent of the next generation, tweaks that helped are kept and crossed,
+and the best result found is held apart in case a later generation is worse.
+
+It ends with the best result, the brief that made it, and which tweaks mattered. The default
+is 3 variants over 3 generations, about ten agent runs, so it spends tokens: it says so first.
+
+> *"Evolve this landing page headline"* · *"I want the best possible version of this system prompt"* · *"Try several ways of asking and keep the best"*
 
 ---
 
