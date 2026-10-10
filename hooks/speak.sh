@@ -23,8 +23,8 @@ STATE="$HOME/.claude/speak"
 ALWAYS="$STATE/always"
 LOG="$STATE/speak.log"
 mkdir -p "$STATE"
-# the voice chosen with "voice <name>", else george
-VOICE="${SPEAK_VOICE:-$(cat "$STATE/voice" 2>/dev/null || echo george)}"
+# the voice chosen with "voice <name>", else bill
+VOICE="${SPEAK_VOICE:-$(cat "$STATE/voice" 2>/dev/null || echo bill)}"
 
 # The reply's summary as plain speech: first paragraph, markdown removed
 summary_of() {

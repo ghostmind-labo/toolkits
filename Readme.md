@@ -25,7 +25,9 @@ Or from inside a session: `/plugin marketplace add ghostmind-labo/toolkits`, the
 | skill | [`file-exchange`](./skills/file-exchange) | Export a file to a GCS bucket and get a URL — private to hand screenshots and files between agents and projects, or public for a link anyone can open |
 | skill | [`agent-channel-read`](./skills/agent-channel-read) | Read, claim and watch messages that other Claude sessions left on the Potion `agent-channel` |
 | skill | [`agent-channel-write`](./skills/agent-channel-write) | Send a self-contained message to a Claude session in another project through the Potion `agent-channel` |
+| skill | [`understand`](./skills/understand) | Explain something in the format that is easiest to take in: Simplified Technical English, a diagram, an HTML page, or a narrated explainer video |
 | command | [`/toolkits:ship`](./commands/ship.md) | Stage → commit → push → PR into `main` → auto-merge, in one command |
+| command | [`/toolkits:bump`](./commands/bump.md) | Ask for the bump level, write the plugin's new version, then ship |
 | hook | [`session chime`](./hooks/hooks.json) | Plays a gentle chime whenever Claude is waiting for your input |
 | hook | [`spoken summary`](./hooks/speak.sh) | Reads the summary of a reply aloud, only when asked: "out loud" in a prompt, or "voice on" |
 | mod | [`session-name`](./mods/session-name) | Always shows this session's name above the prompt: the name other Claude sessions message it by. |
@@ -185,9 +187,29 @@ structure. For `watch`, also `curl`, `jq` and `POTION_API_KEY` (in the environme
 
 > *"Tell the ensemble session the tests pass"* · *"Check the agent channel"* · *"Watch the channel for replies"*
 
+### understand
+
+Spends effort on the reading side of working with a model. It follows a ladder from a note by
+Andrej Karpathy, where each rung costs more to make and less to read: prose in **ASD-STE100**
+(Simplified Technical English, the controlled language of aircraft maintenance manuals,
+applied "80% of the way" by default), a **diagram**, a self-contained interactive **HTML
+page**, or a narrated **explainer video** in the style of 3Blue1Brown. The skill takes the
+lowest rung that carries the subject, or the one you name.
+
+The video rung is a small pipeline: `narrate.sh` makes the voice for each beat of the script
+and measures it, a Manim scene holds each beat for as long as its narration, and `mux.sh` lays
+the voice on the render. `manim.sh` runs Manim Community through `uv`, with nothing installed
+globally.
+
+**Prerequisites** (video only): [`uv`](https://docs.astral.sh/uv/), `ffmpeg`, `jq`, and the
+cairo library (`brew install cairo`). The voice is ElevenLabs through
+OpenRouter when `OPENROUTER_API_KEY` is set, and the free macOS `say` voice otherwise.
+
+> *"Explain this diff in STE"* · *"Draw me a diagram of the auth flow"* · *"Explain this as a web page"* · *"Make a 3b1b style video on binary search"*
+
 ---
 
-## Command
+## Commands
 
 ### `/toolkits:ship`
 
@@ -199,6 +221,20 @@ the command refuses to run while `main` is checked out.
 Accepts an optional commit message: `/toolkits:ship fix the parser`.
 
 Requires an authenticated [`gh`](https://cli.github.com) CLI.
+
+### `/toolkits:bump`
+
+Versions a Claude Code plugin and ships it. An installed plugin only updates when its
+`version` changes, so this is the command for a change that has to reach people. It finds the
+plugin that changed (a marketplace repository can hold several), reads the diff, and asks
+once: patch, minor or major, with the level it recommends first. Then it writes the version
+in `plugin.json`, and wherever else the repository records it, and hands over to
+`/toolkits:ship` with a commit message that ends with the new version.
+
+It does not bump twice: when the version on the branch is already ahead of `main`, it keeps
+it. Like ship, it refuses to run on `main`.
+
+Accepts the answer up front: `/toolkits:bump minor`, `/toolkits:bump 1.0.0 session-name`.
 
 ---
 

@@ -1,6 +1,6 @@
 {
   "name": "toolkits",
-  "version": "0.16.1",
+  "version": "0.17.0",
   "description": "Ghostmind's misc skills, commands, and hooks for Claude Code.",
   "author": {
     "name": "ghostmind-dev"
@@ -22,7 +22,10 @@
     "potion",
     "agents",
     "voice",
-    "text-to-speech"
+    "text-to-speech",
+    "explainer",
+    "diagrams",
+    "simplified-technical-english"
   ],
   "skills": [
     "./skills/agent-channel-read",
@@ -32,6 +35,7 @@
     "./skills/places",
     "./skills/ports",
     "./skills/postgres",
+    "./skills/understand",
     "./skills/wiki",
     "./skills/youtube-summary"
   ]
