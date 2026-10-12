@@ -74,6 +74,11 @@ If `psql` is missing, the Postgres client tools are not installed — tell the u
 Debian/Ubuntu). If the connection fails, check that `PGHOST`/`PGUSER`/`PGPASSWORD` are exported in
 the current shell (`echo "$PGHOST"`).
 
+If `PGHOST` is not set at all, do not guess a server: ask which one is meant. When a project runs its own
+Postgres and documents how to reach it (a README or CLAUDE.md with routines such as `psql` or `list`, one
+server per environment), use that way in, default to the dev server, and treat prod as needing a clear
+go-ahead each time.
+
 **Quoting note:** Pass SQL with `-c "..."`. For meta-commands (`\dt`, `\d`, `\l`) use `-c '\dt'`.
 Add `-X` to skip the user's `.psqlrc`, and `-A -t` for clean, parseable output when feeding results
 into further processing.
