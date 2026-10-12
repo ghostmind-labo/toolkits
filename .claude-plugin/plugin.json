@@ -1,6 +1,6 @@
 {
   "name": "toolkits",
-  "version": "0.18.0",
+  "version": "0.19.0",
   "description": "Ghostmind's misc skills, commands, and hooks for Claude Code.",
   "author": {
     "name": "ghostmind-dev"
@@ -33,6 +33,7 @@
     "./skills/evolve",
     "./skills/file-exchange",
     "./skills/generate-image",
+    "./skills/ios-app",
     "./skills/muse",
     "./skills/places",
     "./skills/ports",
