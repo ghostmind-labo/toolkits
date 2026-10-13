@@ -17,6 +17,10 @@ References: `/Volumes/Projects/relay/mac` (small: an app around a command-line p
 `/Volumes/Projects/format/mac` (large: its own UI, in-app updates). Read the `system` plugin's *A Mac app*
 first: it says what the app is and who does what. This is how to write it.
 
+For an app with its own UI (global shortcuts, a floating panel, audio, pasting into other apps, updates inside
+the app, sign-in, speech models, the release script), read [references/format.md](references/format.md): what
+format met, trap by trap, with the file that shows each.
+
 ## No Xcode project
 
 - `mac/app/Package.swift` with one `executableTarget`, `platforms: [.macOS(.v14)]`. `swift build` compiles it;
@@ -70,7 +74,8 @@ first: it says what the app is and who does what. This is how to write it.
 - A trial build: `codesign --force --sign - <app>` (signed for this Mac only).
 - To give it away: `codesign --force --options runtime --timestamp --sign "Developer ID Application: …"`.
   Find the identity with `security find-identity -v -p codesigning`. An "Apple Development" identity is not
-  it: an app signed with that is refused on any other Mac.
+  it: Gatekeeper refuses that app on another Mac until the person opens it by hand (right-click, Open). relay
+  and format are given away that way today; how a second Mac behaves has not been checked on one.
 - The Developer ID certificate is made by the account holder, once, in Xcode. A script cannot make it.
 - Notarise the .dmg, not the app: `xcrun notarytool submit <dmg> --key <p8 file> --key-id … --issuer … --wait`,
   then `xcrun stapler staple <dmg>`. The key is the App Store Connect key from Vault, written to a temporary
