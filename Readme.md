@@ -29,8 +29,10 @@ Or from inside a session: `/plugin marketplace add ghostmind-labo/toolkits`, the
 | skill | [`muse`](./skills/muse) | Make any piece of work with one influential figure from a random era at its core: their method, not their trademarks |
 | skill | [`evolve`](./skills/evolve) | Get the best result for a goal by evolving the brief: variants run on fresh agents, the results are judged, the winner is tweaked and run again |
 | skill | [`ios-app`](./skills/ios-app) | Build one of our iOS apps with Expo / React Native, in line with the `system` plugin: the files to copy, the commands in order, what Xcode 27 breaks and how to try a flow on the simulator |
+| skill | [`mac-app`](./skills/mac-app) | Build one of our Mac apps in Swift without an Xcode project, in line with the `system` plugin: the app's shape, running a bundled program, signing, notarising, the disk image, and checking it when its window cannot be seen |
 | command | [`/toolkits:ship`](./commands/ship.md) | Stage → commit → push → PR into `main` → auto-merge, in one command |
 | command | [`/toolkits:bump`](./commands/bump.md) | Ask for the bump level, write the plugin's new version, then ship |
+| command | [`/toolkits:recap`](./commands/recap.md) | Say a short, pleasant summary of the session out loud, in the spoken-summary voice |
 | hook | [`session chime`](./hooks/hooks.json) | Plays a gentle chime whenever Claude is waiting for your input |
 | hook | [`spoken summary`](./hooks/speak.sh) | Reads the summary of a reply aloud, only when asked: "out loud" in a prompt, or "voice on" |
 | mod | [`session-name`](./mods/session-name) | Always shows this session's name above the prompt: the name other Claude sessions message it by. |
@@ -270,6 +272,14 @@ it. Like ship, it refuses to run on `main`.
 Accepts the answer up front: `/toolkits:bump minor`, `/toolkits:bump 1.0.0 session-name`.
 
 ---
+
+### `/toolkits:recap`
+
+Says where the session stands, out loud: what now works, then what is still open, in 80 to 120
+words written for the ear. It speaks through the spoken-summary hook, so the voice is the one
+chosen with `voice <name>`, and it prints the same text as its reply.
+
+Accepts a focus: `/toolkits:recap only the iOS part`.
 
 ## Mods
 
