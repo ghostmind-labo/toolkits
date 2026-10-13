@@ -29,6 +29,7 @@ Or from inside a session: `/plugin marketplace add ghostmind-labo/toolkits`, the
 | skill | [`muse`](./skills/muse) | Make any piece of work with one influential figure from a random era at its core: their method, not their trademarks |
 | skill | [`evolve`](./skills/evolve) | Get the best result for a goal by evolving the brief: variants run on fresh agents, the results are judged, the winner is tweaked and run again |
 | skill | [`ios-app`](./skills/ios-app) | Build one of our iOS apps with Expo / React Native, in line with the `system` plugin: the files to copy, the commands in order, what Xcode 27 breaks and how to try a flow on the simulator |
+| skill | [`mac-app`](./skills/mac-app) | Build one of our Mac apps in Swift without an Xcode project, in line with the `system` plugin: the app's shape, running a bundled program, signing, notarising, the disk image, and checking it when its window cannot be seen |
 | command | [`/toolkits:ship`](./commands/ship.md) | Stage → commit → push → PR into `main` → auto-merge, in one command |
 | command | [`/toolkits:bump`](./commands/bump.md) | Ask for the bump level, write the plugin's new version, then ship |
 | hook | [`session chime`](./hooks/hooks.json) | Plays a gentle chime whenever Claude is waiting for your input |
