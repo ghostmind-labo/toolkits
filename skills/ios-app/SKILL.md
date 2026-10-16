@@ -67,6 +67,13 @@ run routine mobile_local_device                    # builds, installs on the pho
 `app/ios/` is generated and not committed. After any change to `app.config.ts`, a plugin or a native
 package: prebuild again.
 
+**Google Cast** (a speaker on the same Wi-Fi): `react-native-google-cast` with its Expo plugin and the receiver id
+from the schema. Start discovery from the first press of your own cast button
+(`CastContext.getDiscoveryManager().startDiscovery()`, then `CastContext.showCastDialog()`), so iOS asks for the
+local network then and not at launch: `iosDisableDiscoveryAutostart: true`, `iosStartDiscoveryAfterFirstTapOnCastButton:
+false`, and an `NSLocalNetworkUsageDescription` that says what it is for. The simulator finds no speaker: casting is
+tried on a phone, and only with the person's say. Reference: `noice/native` (`hooks/useNoice.tsx`).
+
 **Sign-in through the product's OAuth:** `WebBrowser.openAuthSessionAsync(authorizeUrl, "<scheme>://oauth")`
 (expo-web-browser), PKCE with expo-crypto, tokens in expo-secure-store. `relay/native/app/utils/auth.ts`
 is forty lines to copy. No `expo-auth-session`, no reversed Google client id.
@@ -127,6 +134,11 @@ For a real phone, use the `ios-device` skill (screenshots and logs over USB).
 | A test of "is the token in the page" says yes | The test's own text contains the word it looks for. Build the word from two parts |
 | Sign-in returns to the app but the sheet stays, or iOS asks "wants to use … to sign in" in a trial | That question is normal on a real phone. For a pretend backend on `http://`, pass `preferEphemeralSession: true` |
 | The app on the phone talks to prod in dev ("redirect_uri is missing or not allowed" at sign-in, with prod's host in the sheet's title) | Xcode's config step did not get varlock's values. See *The config is read twice* above |
+| The app shows **another project's screens**, or its red box names files that are not yours | Two apps in dev on one Mac, both asking Metro on 8081: yours loaded the other project's code. React Native's core is prebuilt with 8081 compiled in, so `expo run:ios --port` and `RCT_METRO_PORT` do nothing. Give each project its own port: a config plugin that sets `RCTBundleURLProvider.sharedSettings().jsLocation = "<ip.txt or localhost>:<port>"` in Debug, and `expo start --port <port>`. Copy `noice/native/app/plugins/with-metro-port.js`. Check what holds the port: `lsof -iTCP:8081 -sTCP:LISTEN` |
+| `expo start` stops on "Use port 8082 instead?" in a script | The port is taken and the command is not interactive. Do not take the other one: the app was built for its own port. Find who holds it, and stop yours or theirs |
+| Device build: "No profiles for '<bundle id>' were found … Automatic signing is disabled" | A new identifier: Apple does not know it, and no profile exists. Register it (`POST /v1/bundleIds`), then build once with `-allowProvisioningUpdates` and the App Store Connect key (`noice/native/scripts/ios.sh signing`). After that `expo run:ios --device` signs by itself |
+| `react-native-google-cast`: an option has no effect (discovery starts at launch, Google's expanded controls appear) | Its Expo plugin's iOS options are prefixed: `iosReceiverAppId`, `iosDisableDiscoveryAutostart`, `iosStartDiscoveryAfterFirstTapOnCastButton`, `iosSuspendSessionsWhenBackgrounded`; `expandedController` defaults to true. An unprefixed `disableDiscoveryAutostart` is ignored in silence. Read the result in `ios/<App>/AppDelegate.swift` after the prebuild |
+| Cast: "The request was aborted because a similar and overriding request was initiated", once per step of a fader | Each `session.setVolume` overtook the last, and the rejection is never caught. Send the volume at most every 200 ms, the last value only |
 
 ## To TestFlight: built here, no outside service
 
