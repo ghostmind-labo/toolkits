@@ -28,6 +28,7 @@ Or from inside a session: `/plugin marketplace add ghostmind-labo/toolkits`, the
 | skill | [`understand`](./skills/understand) | Explain something in the format that is easiest to take in: Simplified Technical English, a diagram, an HTML page, or a narrated explainer video |
 | skill | [`muse`](./skills/muse) | Make any piece of work with one influential figure from a random era at its core: their method, not their trademarks |
 | skill | [`evolve`](./skills/evolve) | Get the best result for a goal by evolving the brief: variants run on fresh agents, the results are judged, the winner is tweaked and run again |
+| skill | [`android`](./skills/android) | Android on the Mac without Android Studio: Java 17, the SDK, a virtual phone, and adb as an agent's eyes and hands (screenshots, taps, the element tree, logs), with the traps met setting it up |
 | skill | [`ios-app`](./skills/ios-app) | Build one of our iOS apps with Expo / React Native, in line with the `system` plugin: the files to copy, the commands in order, what Xcode 27 breaks and how to try a flow on the simulator |
 | skill | [`mac-app`](./skills/mac-app) | Build one of our Mac apps in Swift without an Xcode project, in line with the `system` plugin: the app's shape, running a bundled program, signing, notarising, the disk image, and checking it when its window cannot be seen |
 | skill | [`refresh-plugins`](./skills/refresh-plugins) | Update every installed plugin at once, then make each Claude session open in Herdr reload its plugins |
