@@ -98,6 +98,11 @@ first: it says what the app is and who does what. This is how to write it.
   path comes from a variable. Move the old one aside inside the build folder and remove by a fixed pattern.
 - The same config folder is read by the app's program and by a command-line copy the person already runs.
   That is wanted (one identity per machine) and is why only one may run: see the `system` plugin.
+- A menu-bar app whose icon disappears after relaunches (each rebuild of a dev watch): an `NSStatusItem` with no
+  `autosaveName` is put back at the left end of the menu bar, beside the notch, the first place a full menu bar hides.
+  Set `statusItem.autosaveName` (one per app, "app-dev" for the dev one) so macOS keeps where the person dragged it.
+  Seen on format (2026-10-18), with the dev and prod apps both in the menu bar; fixed in the code, not yet confirmed
+  on screen.
 - An app whose settings depend on which account it talks to: put the address in Info.plist at build time
   (trial: dev) and let an environment variable win, so one binary can be pointed elsewhere for a check.
 

@@ -140,6 +140,9 @@ For a real phone, use the `ios-device` skill (screenshots and logs over USB).
 | The app shows **another project's screens**, or its red box names files that are not yours | Two apps in dev on one Mac, both asking Metro on 8081: yours loaded the other project's code. React Native's core is prebuilt with 8081 compiled in, so `expo run:ios --port` and `RCT_METRO_PORT` do nothing. Give each project its own port: a config plugin that sets `RCTBundleURLProvider.sharedSettings().jsLocation = "<ip.txt or localhost>:<port>"` in Debug, and `expo start --port <port>`. Copy `noice/native/app/plugins/with-metro-port.js`. Check what holds the port: `lsof -iTCP:8081 -sTCP:LISTEN` |
 | `expo start` stops on "Use port 8082 instead?" in a script | The port is taken and the command is not interactive. Do not take the other one: the app was built for its own port. Find who holds it, and stop yours or theirs |
 | Device build: "No profiles for '<bundle id>' were found … Automatic signing is disabled" | A new identifier: Apple does not know it, and no profile exists. Register it (`POST /v1/bundleIds`), then build once with `-allowProvisioningUpdates` and the App Store Connect key (`noice/native/scripts/ios.sh signing`). After that `expo run:ios --device` signs by itself |
+| Signed device build: `Provisioning profile "iOS Team Provisioning Profile: <id>" doesn't include the App Groups capability` (and "doesn't support the group.… App Group") | The app group is in the entitlements but Apple does not know it, or the App ID does not have it. Register the group and assign it on each App ID (*A keyboard…* above), then build again with `-allowProvisioningUpdates` |
+| `expo run:ios --device` stops at `- Connecting to: <phone>` after `Installing …`, for minutes | The phone is locked, or another project is installing on the same phone at the same time (`pgrep -fl "expo run:ios"`). The app is built: install it yourself, `xcrun devicectl device install app --device <udid> ~/Library/Developer/Xcode/DerivedData/<App>-*/Build/Products/Debug-iphoneos/<App>.app`, and stop your stuck command |
+| `expo-speech-recognition` writes only WAV (`recordingOptions.outputEncoding` is a PCM format), about 2 MB a minute at 16 kHz | Keep the WAV for the recognizer and the server, and make a small M4A on the phone for storage with a local module (*A small native function* above): a fraction of the size, no conversion on a server |
 | `react-native-google-cast`: an option has no effect (discovery starts at launch, Google's expanded controls appear) | Its Expo plugin's iOS options are prefixed: `iosReceiverAppId`, `iosDisableDiscoveryAutostart`, `iosStartDiscoveryAfterFirstTapOnCastButton`, `iosSuspendSessionsWhenBackgrounded`; `expandedController` defaults to true. An unprefixed `disableDiscoveryAutostart` is ignored in silence. Read the result in `ios/<App>/AppDelegate.swift` after the prebuild |
 | Cast: "The request was aborted because a similar and overriding request was initiated", once per step of a fader | Each `session.setVolume` overtook the last, and the rejection is never caught. Send the volume at most every 200 ms, the last value only |
 
@@ -191,6 +194,38 @@ xcodebuild -exportArchive -archivePath build/<App>.xcarchive -exportOptionsPlist
 - make the internal tester group (`POST /v1/betaGroups`, `isInternalGroup` and `hasAccessToAllBuilds` true) and put
   a team member in it (`POST /v1/betaTesters` with their email and the group; adding an existing tester by id to an
   internal group is refused).
+
+## A keyboard, and other extensions that share data with the app
+
+Reference: `format/native/app/targets/keyboard` (built by `@bacons/apple-targets`, type `keyboard`, learned 2026-10-18).
+
+- **A keyboard has no microphone.** iOS gives a keyboard extension no access to the mic, with or without Full Access.
+  A dictation key opens the app (`format://record?from=keyboard`), the app records, leaves the text in the **app
+  group** both share, and the keyboard types it (`textDocumentProxy.insertText`) when it is shown again. To record
+  without leaving the other app, the app must already be running a background audio session the keyboard talks to;
+  the person starts it once (that is how Wispr Flow works).
+- **Opening the app from a keyboard:** `UIApplication.shared` does not exist in an extension. Walk the responder
+  chain to the `UIApplication` and call `openURL:options:completionHandler:` through its method pointer (the
+  keyboard's `open(_:)` in `KeyboardViewController.swift`, seen opening the app on iOS 26).
+- **Full Access** (`RequestsOpenAccess: true`) is needed to read the app group. The target's own `Info.plist` in
+  `targets/<name>/` is not managed by the plugin: write the whole `NSExtension` dict there yourself.
+- **The app group, end to end:** `ios.entitlements['com.apple.security.application-groups']` in `app.config.ts`, the
+  same array in the extension's `expo-target.config.js` (make it a function of `config`: the keyboard type did not
+  pick it up by itself), then Apple: register the group in the Developer portal (Identifiers → App Groups; the
+  identifier field adds `group.` itself, so type `com.example.app`), and on **every** App ID that uses it (the app and
+  the extension, dev and prod) turn App Groups on and assign the group. The App Store Connect API cannot do either.
+  Saving invalidates the existing profiles; the next build with `-allowProvisioningUpdates` makes new ones.
+- **The app writes, the extension reads:** `ExtensionStorage` from `@bacons/apple-targets`
+  (`new ExtensionStorage('group.<bundle id>').set(key, value)`), and `UserDefaults(suiteName:)` on the Swift side.
+
+## A small native function of your own (a local Expo module)
+
+When no package does one thing the app needs (here: the recognizer's WAV as M4A with Apple's encoder), write a
+local module instead of a config plugin: `modules/<name>/` with `expo-module.config.json`
+(`{"platforms":["apple"],"apple":{"modules":["<Name>Module"]}}`), `ios/<Name>.podspec` (depends on
+`ExpoModulesCore`, `static_framework = true`), `ios/<Name>Module.swift` (`Name(…)`, `AsyncFunction(…)`), and an
+`index.ts` with `requireNativeModule`. The prebuild links it like any package (check `grep <Name> ios/Podfile.lock`).
+Reference: `format/native/app/modules/format-audio` (`AVAssetExportSession`, `AVAssetExportPresetAppleM4A`).
 
 ## Location and notifications
 
