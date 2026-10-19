@@ -137,6 +137,9 @@ For a real phone, use the `ios-device` skill (screenshots and logs over USB).
 | Red screen at launch: `[Reanimated] Invalid color value: rgb(0 0 0 / 0.85)` | Reanimated only takes the comma forms (`rgba(0, 0, 0, 0.85)`, `#rrggbb`), although React Native's own parser accepts the space-separated CSS form. A colour made for the web (a theme package's `roleValue`) must be converted before it reaches a style: `nativeColour()` from `@ghostmind-dev/colors/native`, or `platformColors()`, which already does it |
 | A test of "is the token in the page" says yes | The test's own text contains the word it looks for. Build the word from two parts |
 | Sign-in returns to the app but the sheet stays, or iOS asks "wants to use … to sign in" in a trial | That question is normal on a real phone. For a pretend backend on `http://`, pass `preferEphemeralSession: true` |
+| `mobile_publish` ends with "the export failed" right after Xcode's "Upload succeeded" | An old copy of `publish.sh`: it looked for `build/export`, which an upload does not leave. The upload did succeed. Take the current script (relay, Potion and tags were fixed on 2026-10-13) |
+| A block, a layout or a dashboard in a web view never answers in a dev build, and a release build is fine | Its bridge (`serve` of `@ghostmind-dev/block`, or anything with a `stop()`) was made in `useMemo` or while rendering and stopped in an effect's cleanup. In development React runs an effect, undoes it and runs it again, and a stopped bridge answers nothing. Make it inside the effect and keep it in a ref |
+| `new URL(x).searchParams` is empty or throws in the app | React Native's `URL` is not the browser's. Read the one value you need with a regular expression |
 | The app on the phone talks to prod in dev ("redirect_uri is missing or not allowed" at sign-in, with prod's host in the sheet's title) | Xcode's config step did not get varlock's values. See *The config is read twice* above |
 | The app shows **another project's screens**, or its red box names files that are not yours | Two apps in dev on one Mac, both asking Metro on 8081: yours loaded the other project's code. React Native's core is prebuilt with 8081 compiled in, so `expo run:ios --port` and `RCT_METRO_PORT` do nothing. Give each project its own port: a config plugin that sets `RCTBundleURLProvider.sharedSettings().jsLocation = "<ip.txt or localhost>:<port>"` in Debug, and `expo start --port <port>`. Copy `noice/native/app/plugins/with-metro-port.js`. Check what holds the port: `lsof -iTCP:8081 -sTCP:LISTEN` |
 | `expo start` stops on "Use port 8082 instead?" in a script | The port is taken and the command is not interactive. Do not take the other one: the app was built for its own port. Find who holds it, and stop yours or theirs |
@@ -175,6 +178,19 @@ xcodebuild -exportArchive -archivePath build/<App>.xcarchive -exportOptionsPlist
   the environment, and keep it for Xcode's config step with the other values.
 - "Upload Symbols Failed … React.framework / hermes.framework" at the end are warnings: the upload succeeded.
 - The prebuild leaves `ios/` as the prod app: run `module_local_prebuild` before the next dev run.
+- **Publish from a copy of `main`, not from the folder the dev build lives in:** `git worktree add
+  .claude/worktrees/ios origin/main` (never a folder beside the project), `npm install` there once, then the
+  publish in its `native/`, and `git worktree remove` it after. The dev folder
+  keeps its dev `ios/`, and nobody's uncommitted work is in the build.
+- **Nobody at the keyboard:** the version question takes its answer on standard input,
+  `printf 'p\n' | run routine mobile_publish` (p, m, M, k, or a version in full).
+- **One build of an app at a time, and say you are starting it.** Two sessions told to publish the same app
+  each started one; one stopped "its own" with `pkill -f scripts/publish.sh`, which matches every project's
+  publish on the machine (relay, 2026-10-13). Stop a build by its process id.
+- **After "Uploaded", commit the new version**: `app.json`, that one file, as a change of its own. Left
+  uncommitted, it rides into somebody's next `git commit -a`.
+- **An upload is not a test.** A build nobody opened has run nowhere: say so in the report, with what to press
+  first in TestFlight.
 - Apple processes a build for a few minutes. Watch it with `GET /v1/builds?filter[app]=<id>`
   (`processingState` `VALID`, then `internalBuildState` `READY_FOR_BETA_TESTING`).
 
@@ -227,6 +243,29 @@ local module instead of a config plugin: `modules/<name>/` with `expo-module.con
 `ExpoModulesCore`, `static_framework = true`), `ios/<Name>Module.swift` (`Name(…)`, `AsyncFunction(…)`), and an
 `index.ts` with `requireNativeModule`. The prebuild links it like any package (check `grep <Name> ios/Podfile.lock`).
 Reference: `format/native/app/modules/format-audio` (`AVAssetExportSession`, `AVAssetExportPresetAppleM4A`).
+
+## Html a model wrote, in a web view
+
+A chart in a note, a layout, a dashboard: every app of ours shows these with `@ghostmind-dev/block`, the same
+sandboxed page as on the web (its rules: the `system` plugin, `new-app`, blocks.md). In the app:
+
+- **The page:** `documentOf(source, { host, libraries, transport: 'webview', viewport })`. `transport` adds the
+  script that talks through `window.ReactNativeWebView`; nothing else of the document differs from the web's.
+- **The app's side:** `serve(host, webviewTarget((js) => web.current?.injectJavaScript(js)), handlers, { onHeight })`
+  and `onMessage={(e) => served.receive(fromWebview(e.nativeEvent.data))}`. The handlers are the product's own
+  functions, the same ones its web page uses. Make `serve` inside the effect (see *Traps*).
+- **Keep `source` the same object while the page is the same** (`useMemo` on the html). A new object on every
+  render reloads the page, and a height message is a render.
+- **The channel carries text.** Bytes (a map tile) cross as base64 and are bytes again in the page; an app that
+  already holds base64 answers `{ __blockBytes: text }`.
+- **The web view is what keeps the page in:** `incognito`, and `onShouldStartLoadWithRequest` true only for
+  `about:blank`. A second web view (a block opened on the whole screen) gets a document of its own
+  (`expanded: true`, a viewport that may be pinched) and its own `serve`.
+- **The package is plain JavaScript.** Metro reads it as it is; TypeScript needs a
+  `types/ghostmind-block.d.ts` with `declare module '@ghostmind-dev/block'` for what the app uses.
+- References: `potion/native/app/components/elements/HtmlBlock.tsx` (many functions, two web views),
+  `tags/native/app/components/elements/LayoutView/LayoutView.tsx` (one function, 100 lines),
+  `relay/native/app/app/dashboard/[id].tsx` with `utils/block.ts`.
 
 ## Location and notifications
 

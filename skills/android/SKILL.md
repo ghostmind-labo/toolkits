@@ -61,8 +61,29 @@ done
 adb emu kill                                                   # stop it when done: it holds 2 to 4 GB
 ```
 
-Then build an app onto it: `npx expo run:android` in the Expo app's folder. The first Gradle build
-is slow (5 to 10 minutes). *Not yet proven on our apps: write what it took here the first time.*
+## Build one of our Expo apps onto it
+
+Proven on noice (Expo SDK 54, React Native 0.81, 2026-10-18), up to its sign-in screen:
+
+```bash
+# from the app's folder, through varlock like every routine
+npx expo prebuild --platform android --no-install
+cd android && ./gradlew app:installDebug -PreactNativeDevServerPort=<the app's Metro port> -q
+npx expo start --port <the app's Metro port>          # Metro, in its own pane
+adb shell am start -n <package>/.MainActivity
+```
+
+- **Give the app's Metro port to Gradle, not to `expo run:android`.** On the emulator the app reaches the Mac at
+  `10.0.2.2:<port>`, so `adb reverse` changes nothing, and the port is the one compiled into the debug app
+  (`react_native_dev_server_port`). `expo run:android` always passes 8081, and refuses `--port` with
+  `--no-bundler`. The port is the iOS app's, from the system's registry.
+- **Android's splash screen needs an image** (iOS does without): `expo-splash-screen` with
+  `android: { image, imageWidth }`, or Gradle stops on `drawable/splashscreen_logo not found`.
+- `android.package` in `app.config.ts`: the same id as iOS (dev and prod side by side).
+- **Build outside `/Volumes/Projects`.** `android/` grows to 3–4 GB; a worktree for it goes in
+  `~/.herdr/worktrees/<project>/` on the main disk. Gradle also downloads the NDK, CMake and build-tools 35 on its
+  own the first time (about 2 GB, in the SDK), and `~/.gradle` grows to about 3.5 GB.
+- The first build takes 5 to 10 minutes; Expo's native packages (WebView, Google Cast) compiled unchanged.
 
 ## adb: the agent's eyes and hands
 
@@ -91,3 +112,5 @@ back to the device's pixels before tapping.
 | `sdkmanager` prints that it is deprecated: *Use Android CLI instead* | Google is replacing it with `android` (`android sdk …`), in the same `cmdline-tools/latest/bin`, documented for agents at https://d.android.com/tools/agents/android-cli | `sdkmanager` still works. Try the Android CLI when something new is needed, and update this skill with what it does better |
 | `android-commandlinetools requires Java` after the cask installs | The cask's warning, written for a Java on the system path | Ignore it: every command above runs with `JAVA_HOME` set |
 | An old `export PATH=…${HOME}/android/platform-tools` line in `~/.zshrc` | A leftover from an earlier install, pointing to a folder that no longer exists | Replace it with the three lines above |
+| The app on the emulator shows another project's screens (routes it does not have, `react-redux` errors) | It asked `10.0.2.2:8081`, where another project's Metro answers: the debug app was built with the default port | Build with `-PreactNativeDevServerPort=<port>` (above) and start Metro on that port |
+| `No space left on device` mid-build, and other sessions' tools fail at the same moment | `/Volumes/Projects` is a 20 GB volume, and `android/` with its build outputs takes 3–4 GB | Delete the build outputs (`android/app/build`, `android/build`, `.cxx`) and build from `~/.herdr/worktrees/<project>/` |
