@@ -106,6 +106,25 @@ first: it says what the app is and who does what. This is how to write it.
 - An app whose settings depend on which account it talks to: put the address in Info.plist at build time
   (trial: dev) and let an environment variable win, so one binary can be pointed elsewhere for a check.
 
+## Sparkle in a Swift package app (learned on format and relay, 2026-10-22)
+
+How we use it, the key and the release, is the `system` plugin's (`new-app`, non-web.md, *A Mac app*). What Sparkle
+itself does:
+
+- **SwiftPM leaves Sparkle outside the app.** `swift build` links `@rpath/Sparkle.framework` and puts it only in
+  `.build/artifacts/sparkle/Sparkle/Sparkle.xcframework/macos-arm64_x86_64/`. Copy it into `Contents/Frameworks`
+  and add `install_name_tool -add_rpath @executable_path/../Frameworks`, or the app cannot start: dyld does not find
+  `@rpath/Sparkle.framework`. Check with `otool -L` and by running the binary once.
+- **Sign inside out:** `Downloader.xpc` and `Installer.xpc` (with `--preserve-metadata=entitlements`), `Updater.app`,
+  `Autoupdate`, then the framework, then the app. A plain `codesign` on the app does not reach them, and
+  `codesign --verify --deep --strict` then fails. Under the Developer ID each one gets `--options runtime --timestamp`.
+- **`sparkle:version` is compared with `CFBundleVersion`**, not the version people see: the build number must only
+  grow (a timestamp does).
+- **Sparkle quits the app to replace it** (`NSApp.terminate`). A child process the app started keeps running from
+  the old copy unless the app stops it on `NSApplication.willTerminateNotification`.
+- `generate_keys --account <app>` keeps the private key in the login keychain; `-x <file>` exports it (for Vault),
+  `-p` prints the public half. `sign_update --ed-key-file <file> -p <zip>` prints the signature alone.
+
 ## Bluetooth from a Mac app (learned on relay, 2026-10-13)
 
 - **An app started as a child of a terminal gets the terminal's permissions.** CoreBluetooth then never
