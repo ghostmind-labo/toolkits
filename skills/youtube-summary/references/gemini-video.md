@@ -12,7 +12,7 @@ Verified against the live API on 2026-09-15. Official docs:
 | **static** | Fixed-rate sampling, 1 frame/s plus audio | ~100 tokens per second of video at default (low) media resolution | Yes (`generateContent` only) |
 
 Agentic video understanding launched 2026-09-01. Announced models: Gemini 3.7 Flash,
-3.6 Flash, 3.5 Flash-Lite. `gemini-3.8-flash` also accepts it (tested). No extra fee beyond
+3.6 Flash, 3.5 Flash-Lite. `gemini-3.8-flash` and `gemini-4-argon` (the default since 2026-11-01) also accept it (tested). No extra fee beyond
 token pricing.
 
 ## Interactions API (agentic or static)
@@ -21,7 +21,7 @@ token pricing.
 curl -s -X POST "https://generativelanguage.googleapis.com/v1beta/interactions" \
   -H "x-goog-api-key: $GEMINI_API_KEY" -H 'Content-Type: application/json' \
   -d '{
-    "model": "gemini-3.8-flash",
+    "model": "gemini-4-argon",
     "input": [
       {"type": "video", "uri": "https://www.youtube.com/watch?v=9hE5-98ZeCg", "processing": "agentic"},
       {"type": "text", "text": "Summarize this video."}
@@ -33,7 +33,7 @@ Omit `"processing"` for static. Response (signatures elided):
 
 ```json
 {
-  "id": "v1_…", "object": "interaction", "status": "completed", "model": "gemini-3.8-flash",
+  "id": "v1_…", "object": "interaction", "status": "completed", "model": "gemini-4-argon",
   "steps": [
     {"type": "processing_call", "id": "call_13407"},
     {"type": "processing_result", "call_id": "call_13407"},
@@ -51,7 +51,7 @@ as `client.interactions.create(...).output_text`.
 ## generateContent (static, supports clipping)
 
 ```bash
-curl -s "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent" \
+curl -s "https://generativelanguage.googleapis.com/v1beta/models/gemini-4-argon:generateContent" \
   -H "x-goog-api-key: $GEMINI_API_KEY" -H 'Content-Type: application/json' \
   -d '{
     "contents": [{"parts": [
