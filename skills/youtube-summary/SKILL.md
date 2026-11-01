@@ -53,7 +53,7 @@ Bash timeout of at least 600000 ms.
 | "Save it" / a file path | `--out <path>.md` |
 | Structured output for further processing | `--json` |
 
-Other flags: `--model <id>` (default `gemini-3.8-flash`), `--processing static` to force
+Other flags: `--model <id>` (default `gemini-4-argon`), `--processing static` to force
 fixed-rate frame sampling.
 
 For multiple videos, run the script once per URL (in parallel when independent) rather than
