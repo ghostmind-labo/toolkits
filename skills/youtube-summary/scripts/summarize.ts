@@ -8,7 +8,7 @@
  * which is the only endpoint that accepts video offsets.
  *
  * Usage:
- *   summarize.ts <youtube-url> [--mode full|tldr|chapters|notes] [--prompt "..."]
+ *   summarize.ts <youtube-url> [--mode explain|full|tldr|chapters|notes] [--prompt "..."]
  *                [--model gemini-4-argon] [--processing agentic|static]
  *                [--start 1m30s --end 5m] [--lang fr] [--out file.md] [--json]
  */
@@ -38,6 +38,33 @@ Up to 5 short verbatim quotes with timestamps. Omit the section if none stand ou
 Actionable conclusions or what a viewer should remember.
 
 No preamble before the first heading.`,
+  explain: `Write a complete explanation of the subject of this video, so that someone who has not watched it understands the subject as well as a viewer who watched it closely. This is not a list of what happens in the video and not a timeline: it is a summary of the subject itself, a piece that teaches the ideas.
+
+Organize it by concept, not by the order of the video. Bring together everything said about one idea, even when it comes up at different moments.
+
+In Markdown:
+
+## The subject
+What the video is about, the question or problem it addresses, why it matters, and the speaker's main thesis, in a few paragraphs.
+
+## The ideas, explained
+One subsection per major concept, in the order that makes them easiest to understand. For each one, in full paragraphs:
+- what it is, defined plainly; any term of art explained the first time it appears
+- how it works or why it holds, following the speaker's reasoning step by step, with their arguments, evidence, numbers and examples
+- what is shown on screen that matters (diagrams, code, data, demos), described so it can be understood without seeing it
+- where it connects to the other ideas
+Add the background the video assumes when a reader would need it to follow, and mark it as context you are adding, not something the video says.
+
+## How it fits together
+The overall argument or method from start to finish: how the ideas build on each other to reach the conclusion.
+
+## Nuances and limits
+Caveats, open questions, counter-arguments and trade-offs the speaker raises, and claims that are presented as opinion or are disputed. Mark any point you add yourself as your own.
+
+## What to remember
+The ideas worth keeping, and what someone could do or look into next.
+
+Be thorough: length should follow the depth of the video, and a long, dense video gets a long explanation. Write in prose; use bullets only for real lists. Keep a [MM:SS] reference after a claim when it helps to find it in the video, but do not structure the text around timestamps. No preamble before the first heading.`,
   notes: `Write study notes for this video in Markdown: definitions, concepts, step-by-step procedures, code or commands shown on screen (in code blocks), and resources mentioned. Group by topic, add [MM:SS] timestamps to each topic heading. No preamble.`,
 };
 
@@ -60,7 +87,7 @@ function die(msg: string): never {
 }
 
 function parseArgs(argv: string[]): Args {
-  const a: Partial<Args> = { mode: "full", model: DEFAULT_MODEL, processing: "agentic", json: false };
+  const a: Partial<Args> = { mode: "explain", model: DEFAULT_MODEL, processing: "agentic", json: false };
   for (let i = 0; i < argv.length; i++) {
     const k = argv[i];
     const next = () => argv[++i] ?? die(`missing value for ${k}`);
@@ -75,7 +102,7 @@ function parseArgs(argv: string[]): Args {
       case "--out": a.out = next(); break;
       case "--json": a.json = true; break;
       case "-h": case "--help":
-        console.log("usage: summarize.ts <youtube-url> [--mode full|tldr|chapters|notes] [--prompt text] [--model id] [--processing agentic|static] [--start 1m30s] [--end 5m] [--lang code] [--out file] [--json]");
+        console.log("usage: summarize.ts <youtube-url> [--mode explain|full|tldr|chapters|notes] [--prompt text] [--model id] [--processing agentic|static] [--start 1m30s] [--end 5m] [--lang code] [--out file] [--json]");
         Deno.exit(0);
       default:
         if (k.startsWith("--")) die(`unknown flag ${k}`);

@@ -43,7 +43,8 @@ Bash timeout of at least 600000 ms.
 
 | User asks for | Flags |
 |---|---|
-| "Summarize this video" / just a link | *(none — `--mode full` is the default)* |
+| "Summarize this video", "explain this video", "what is it about" / just a link | *(none — `--mode explain` is the default: a summary of the subject itself, organized by concept, each idea explained in full with the speaker's reasoning and examples, not a list of what happens)* |
+| "Walk me through the video", "what happens in it", a recap in order | `--mode full` (a timeline: key points and one section per segment, with timestamps) |
 | "TL;DR", "quick summary", "in short" | `--mode tldr` |
 | "Chapters", "timestamps", "outline" | `--mode chapters` |
 | "Take notes", "study notes", "extract the commands/code" | `--mode notes` |
