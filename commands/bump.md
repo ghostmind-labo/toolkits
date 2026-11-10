@@ -1,7 +1,7 @@
 ---
-description: Bump a Claude Code plugin's version (asks patch, minor or major, with a recommendation from the diff), then ship it — commit, push, PR into main, auto-merge. Refuses to run on main.
+description: Bump a plugin's version for Claude Code and Agent Plugins (asks patch, minor or major, with a recommendation from the diff), then ship it — commit, push, PR into main, auto-merge. Refuses to run on main.
 argument-hint: "[patch|minor|major|x.y.z] [plugin name] [commit message]"
-allowed-tools: Bash(git status:*), Bash(git rev-parse:*), Bash(git branch:*), Bash(git symbolic-ref:*), Bash(git fetch:*), Bash(git show:*), Bash(git add:*), Bash(git diff:*), Bash(git commit:*), Bash(git push:*), Bash(git log:*), Bash(gh pr create:*), Bash(gh pr merge:*), Bash(gh pr view:*), Bash(gh auth status:*)
+allowed-tools: Bash(git status:*), Bash(git rev-parse:*), Bash(git branch:*), Bash(git symbolic-ref:*), Bash(git fetch:*), Bash(git show:*), Bash(git add:*), Bash(git diff:*), Bash(git check-ignore:*), Bash(git ls-files:*), Bash(git commit:*), Bash(git push:*), Bash(git log:*), Bash(gh pr create:*), Bash(gh pr merge:*), Bash(gh pr view:*), Bash(gh auth status:*)
 ---
 
 # Bump — Version a Plugin, Then Ship It
@@ -9,6 +9,18 @@ allowed-tools: Bash(git status:*), Bash(git rev-parse:*), Bash(git branch:*), Ba
 An installed plugin only updates when its `version` changes, so a change that ships without
 a bump never reaches anyone. This command sets the new version, with the user's choice of
 level, and then hands over to `/toolkits:ship`.
+
+A plugin folder can ship for two platforms at once, and one bump releases it on both:
+
+| Platform | Manifest | MCP servers |
+|---|---|---|
+| Claude Code | `.claude-plugin/plugin.json` | `.mcp.json` |
+| Agent Plugins 1.0 ([agent-plugins.org](https://agent-plugins.org), used by Hermes Agent) | `plugin.json` | `mcp.json` |
+
+All four files sit in the same plugin folder: the parent of `.claude-plugin/`. An Agent
+Plugins manifest is a `plugin.json` at that folder's root whose `"$schema"` is
+`https://agent-plugins.org/schemas/1.0.0/plugin.schema.json`. A `plugin.json` without that
+`$schema` is not one: leave it alone.
 
 The user may have supplied arguments: **$ARGUMENTS**
 
@@ -87,8 +99,14 @@ The user can also type a version. Refuse one that is not higher than **released*
 
 ## Step 6: Write the version
 
-Edit `version` in the plugin's `plugin.json`. Change that one line and keep the formatting of
-the file.
+Edit `version` in the plugin's `.claude-plugin/plugin.json`. Change that one line and keep the
+formatting of the file.
+
+If the plugin folder has an Agent Plugins manifest (`plugin.json` at its root, with the
+Agent Plugins `$schema`), write the same new version into its `version` field, the same way.
+This is a rule, not a search: the two platforms always release the same version. If that
+manifest has a different version than the Claude Code one had before the bump, say so in the
+report, and write the new version into both all the same.
 
 Then search for other places that record the same version, and update each one you find:
 
@@ -98,7 +116,39 @@ Then search for other places that record the same version, and update each one y
 
 Do not add a `version` field where there was none.
 
-## Step 7: Ship
+## Step 7: Check the two platforms
+
+Skip this step when the plugin folder has no Agent Plugins files (no `plugin.json` with the
+Agent Plugins `$schema`, and no `mcp.json`).
+
+**The files are tracked.** Run `git check-ignore -v <file>` on the plugin folder's
+`plugin.json` and `mcp.json`. A match means the file never ships: many `.gitignore` files
+have `**/mcp.json` with only `!plugin/.mcp.json` as an exception. Stop and report the rule
+that matches, and the line to add (for example `!plugin/mcp.json`). Do not edit `.gitignore`
+without the user's go-ahead.
+
+**The required fields are there.** The Agent Plugins `plugin.json` needs `$schema`, `name` and
+`version`, and only these top-level fields are allowed: `$schema`, `name`, `version`,
+`description`, `author` (`name`, `email`, `url`), `homepage`, `repository`, `license`,
+`keywords`, `extensions`. Its `name` must match the Claude Code manifest's `name`. An
+`mcp.json` needs `"$schema": "https://agent-plugins.org/schemas/1.0.0/mcp.schema.json"` and a
+`mcpServers` object.
+
+**The MCP servers match.** Only when the folder has both `.mcp.json` and `mcp.json`. With one
+of them alone, there is nothing to compare. The Claude Code `.mcp.json` holds its servers
+either under `mcpServers` or at the top level; read both shapes.
+
+- The two files list the same server names.
+- For each server, the `type` maps from Claude Code to Agent Plugins as follows: `http` →
+  `streamable-http`; `sse` → `sse`; `stdio` → `stdio`. A server with no `type` and a `url`
+  counts as `http`; one with a `command` counts as `stdio`.
+- For each server, `url` and `headers` are the same in both files (`command`, `args` and
+  `env` for a stdio server).
+
+On any mismatch, stop before shipping. Report each difference (server, field, the value in
+`.mcp.json`, the value in `mcp.json`) and ask the user which one is right. Do not pick one.
+
+## Step 8: Ship
 
 Write the commit message, unless the user gave one: one subject line that says what changed
 and ends with the new version in parentheses, as the history of this repository does, for
@@ -108,7 +158,8 @@ name each with its version.
 Then invoke the `toolkits:ship` skill with that message as its argument, and let it run its
 own steps: stage, commit, push, pull request into main, merge. Do not repeat its steps here.
 
-## Step 8: Report
+## Step 9: Report
 
-Add one line to the report from ship: the plugin, the old version and the new one. Remind the
+Add one line to the report from ship: the plugin, the old version and the new one, and the
+platforms it now releases on (Claude Code, and Agent Plugins when its manifest is there). Remind the
 user that sessions already running keep the old version until `/plugin update` or a restart.
