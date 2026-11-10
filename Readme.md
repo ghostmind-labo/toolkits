@@ -33,7 +33,7 @@ Or from inside a session: `/plugin marketplace add ghostmind-labo/toolkits`, the
 | skill | [`mac-app`](./skills/mac-app) | Build one of our Mac apps in Swift without an Xcode project, in line with the `system` plugin: the app's shape, running a bundled program, signing, notarising, the disk image, and checking it when its window cannot be seen |
 | skill | [`refresh-plugins`](./skills/refresh-plugins) | Update every installed plugin at once, then make each Claude session open in Herdr reload its plugins |
 | command | [`/toolkits:ship`](./commands/ship.md) | Stage → commit → push → PR into `main` → auto-merge, in one command |
-| command | [`/toolkits:bump`](./commands/bump.md) | Ask for the bump level, write the plugin's new version for Claude Code and Agent Plugins, then ship |
+| command | [`/toolkits:bump`](./commands/bump.md) | Ask for the bump level, write the plugin's new version, then ship |
 | command | [`/toolkits:recap`](./commands/recap.md) | Say a short, pleasant summary of the session out loud, in the spoken-summary voice |
 | hook | [`session chime`](./hooks/hooks.json) | Plays a gentle chime whenever Claude is waiting for your input |
 | hook | [`spoken summary`](./hooks/speak.sh) | Reads the summary of a reply aloud, only when asked: "out loud" in a prompt, or "voice on" |
@@ -277,21 +277,12 @@ Requires an authenticated [`gh`](https://cli.github.com) CLI.
 
 ### `/toolkits:bump`
 
-Versions a plugin for Claude Code and Agent Plugins, and ships it. An installed plugin only updates when its
+Versions a Claude Code plugin and ships it. An installed plugin only updates when its
 `version` changes, so this is the command for a change that has to reach people. It finds the
 plugin that changed (a marketplace repository can hold several), reads the diff, and asks
 once: patch, minor or major, with the level it recommends first. Then it writes the version
 in `plugin.json`, and wherever else the repository records it, and hands over to
 `/toolkits:ship` with a commit message that ends with the new version.
-
-A plugin folder can ship for two platforms: Claude Code (`.claude-plugin/plugin.json` and
-`.mcp.json`) and [Agent Plugins 1.0](https://agent-plugins.org), used by Hermes Agent
-(`plugin.json` and `mcp.json` at the folder's root). One bump releases both: when the folder
-has an Agent Plugins `plugin.json` (its `$schema` is the agent-plugins.org one), the new
-version goes into it too. Before it ships, it checks that the Agent Plugins files are not
-ignored by `.gitignore`, and, when both `.mcp.json` and `mcp.json` exist, that each server has
-the same `url` and `headers` in both (`http` in Claude Code is `streamable-http` in Agent
-Plugins). On a mismatch it stops and reports.
 
 It does not bump twice: when the version on the branch is already ahead of `main`, it keeps
 it. Like ship, it refuses to run on `main`.
