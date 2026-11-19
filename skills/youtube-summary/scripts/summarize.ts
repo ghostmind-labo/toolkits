@@ -9,12 +9,12 @@
  *
  * Usage:
  *   summarize.ts <youtube-url> [--mode explain|full|tldr|chapters|notes] [--prompt "..."]
- *                [--model gemini-4-argon] [--processing agentic|static]
+ *                [--model gemini-4-neon] [--processing agentic|static]
  *                [--start 1m30s --end 5m] [--lang fr] [--out file.md] [--json]
  */
 
 const API = "https://generativelanguage.googleapis.com/v1beta";
-const DEFAULT_MODEL = "gemini-4-argon";
+const DEFAULT_MODEL = "gemini-4-neon";
 const TIMEOUT_MS = 15 * 60 * 1000;
 
 const MODES: Record<string, string> = {
