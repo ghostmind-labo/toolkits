@@ -1,0 +1,198 @@
+<!--
+  unit-first playground template.
+  Copy this file, then edit only sections 1 (the math), 2 (CHECKS) and 4 (the steps).
+  Section 3 (helpers) may grow; section 5 (the stepper) stays as it is.
+  Replace every "matrix" in data-ufp="matrix" with a short id of the subject, so that two
+  playgrounds on one page do not take each other's root.
+  Check it with: node <skill-dir>/scripts/check.mjs <this file>
+-->
+<style>
+.ufp{--bg:#ffffff;--panel:#f2f3f8;--canvas:#fafbfd;--ink:#1b1e2e;--mut:#5b6078;--grid:#e2e4ee;--axis:#b4b8cc;
+  --a:#c2410c;--b:#0e7490;--c:#be185d;--d:#15803d;--on:#c2410c;--on-ink:#ffffff;
+  font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--ink);border:1px solid var(--grid);border-radius:14px;padding:14px;box-sizing:border-box}
+@media (prefers-color-scheme:dark){.ufp{--bg:#0d1022;--panel:#161a33;--canvas:#080a18;--ink:#e8e9f3;--mut:#9aa0c3;--grid:#1f2446;--axis:#39407a;
+  --a:#f2c14e;--b:#5ad1e6;--c:#ff6b9a;--d:#8ff0bd;--on:#f2c14e;--on-ink:#0d1022}}
+.ufp *{box-sizing:border-box}
+.ufp-top{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.ufp-top button{width:34px;height:34px;border-radius:50%;border:1px solid var(--axis);background:var(--panel);color:var(--mut);font-size:13px;font-weight:600;cursor:pointer}
+.ufp-top button.done{color:var(--ink)}
+.ufp-top button.on{background:var(--on);color:var(--on-ink);border-color:var(--on)}
+.ufp-k{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--mut)}
+.ufp h4{margin:2px 0 6px;font-size:17px}
+.ufp-f{font-family:"STIX Two Math","Cambria Math",Georgia,serif;font-size:19px;background:var(--panel);border-radius:8px;padding:8px 12px;margin:6px 0 8px;overflow-x:auto;white-space:nowrap}
+.ufp-n{font-size:13px;color:var(--mut);line-height:1.5;margin:0 0 10px}
+.ufp-w{position:relative;height:330px;background:var(--canvas);border-radius:10px;border:1px solid var(--grid)}
+.ufp-w canvas{position:absolute;inset:0;width:100%;height:100%}
+.ufp-c{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px 16px;margin-top:10px}
+.ufp-c label{display:flex;align-items:center;gap:8px;font-size:13px}
+.ufp-c input{flex:1;min-width:60px;accent-color:var(--on)}
+.ufp-c b{min-width:48px;text-align:right;font-variant-numeric:tabular-nums;color:var(--a)}
+.ufp-r{font-size:13px;margin-top:8px;font-variant-numeric:tabular-nums;line-height:1.5;min-height:40px}
+.ufp-x{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.ufp-x button,.ufp-nav button{min-height:38px;padding:0 14px;border-radius:999px;border:1px solid var(--axis);background:var(--panel);color:var(--ink);font-size:13px;cursor:pointer}
+.ufp-nav{display:flex;justify-content:space-between;margin-top:12px}
+.ufp-nav button.go{background:var(--on);color:var(--on-ink);border-color:var(--on);font-weight:600}
+</style>
+<div class="ufp" data-ufp="matrix">
+  <div class="ufp-top"></div>
+  <div class="ufp-k"></div>
+  <h4></h4>
+  <div class="ufp-f"></div>
+  <p class="ufp-n"></p>
+  <div class="ufp-w"><canvas></canvas></div>
+  <div class="ufp-c"></div>
+  <div class="ufp-x"></div>
+  <div class="ufp-r" aria-live="polite"></div>
+  <div class="ufp-nav"><button type="button" class="pv">← Back</button><button type="button" class="go nx">Next →</button></div>
+</div>
+<script>
+(() => {
+// ================= 1. THE MATH: pure functions, no drawing =================
+const mul=(A,B)=>A.map((r,i)=>B[0].map((_,j)=>r.reduce((s,a,k)=>s+a*B[k][j],0)));
+const apply=(M,v)=>M.map(r=>r.reduce((s,a,k)=>s+a*v[k],0));
+const det2=M=>M[0][0]*M[1][1]-M[0][1]*M[1][0];
+const rot=deg=>{const r=deg*Math.PI/180;return [[Math.cos(r),-Math.sin(r)],[Math.sin(r),Math.cos(r)]];};
+const shear=k=>[[1,k],[0,1]];
+const same=(A,B,e=1e-9)=>A.every((r,i)=>r.every((a,j)=>Math.abs(a-B[i][j])<e));
+// The fixed n×n example of the last step: small whole numbers, the same on every load.
+const bigA=n=>Array.from({length:n},(_,i)=>Array.from({length:n},(_,k)=>((i*3+k*5+1)%7)-3));
+const bigB=n=>Array.from({length:n},(_,k)=>Array.from({length:n},(_,j)=>((k*2+j*3+2)%5)-2));
+
+// ================= 2. CHECKS: known values, run by scripts/check.mjs =================
+// [label, () => value, expected]. Expected may be a number or an array (compared deeply).
+const CHECKS=[
+  ["[[1,2],[3,4]]·[[5,6],[7,8]] = [[19,22],[43,50]]",()=>mul([[1,2],[3,4]],[[5,6],[7,8]]),[[19,22],[43,50]]],
+  ["M·(x,y) is one dot product per row",()=>apply([[2,1],[-1,3]],[1,2]),[4,5]],
+  ["a 90° rotation sends (1,0) to (0,1)",()=>apply(rot(90),[1,0]).map(x=>+x.toFixed(12)),[0,1]],
+  ["A·(B·v) = (AB)·v",()=>apply(rot(30),apply(shear(1.5),[2,-1])).map(x=>+x.toFixed(9)),apply(mul(rot(30),shear(1.5)),[2,-1]).map(x=>+x.toFixed(9))],
+  ["det(AB) = det A · det B",()=>+det2(mul([[2,1],[1,3]],[[0,-1],[4,2]])).toFixed(9),det2([[2,1],[1,3]])*det2([[0,-1],[4,2]])],
+  ["rotation and shear do not commute",()=>same(mul(rot(40),shear(1)),mul(shear(1),rot(40))),false],
+  ["the n×n rule gives the same as the 2×2 rule for n = 2",()=>mul(bigA(2),bigB(2)),[[bigA(2)[0][0]*bigB(2)[0][0]+bigA(2)[0][1]*bigB(2)[1][0],bigA(2)[0][0]*bigB(2)[0][1]+bigA(2)[0][1]*bigB(2)[1][1]],[bigA(2)[1][0]*bigB(2)[0][0]+bigA(2)[1][1]*bigB(2)[1][0],bigA(2)[1][0]*bigB(2)[0][1]+bigA(2)[1][1]*bigB(2)[1][1]]]],
+];
+
+// ================= 3. HELPERS =================
+let C={};
+const f=(x,d=2)=>{const s=Number(x).toFixed(d);return s.startsWith("-")&&+s===0?s.slice(1):s;};
+const fm=M=>"["+M.map(r=>r.map(x=>f(x)).join(" ")).join("; ")+"]";
+const fv=v=>"("+v.map(x=>f(x)).join(", ")+")";
+function axes(c,W,H,x0,x1,y0,y1,o={}){ // a graph y = f(x); returns {X,Y} that map values to pixels
+  const L=o.L??38,B=o.B??22,T=10,R=10,X=x=>L+(x-x0)/(x1-x0)*(W-L-R),Y=y=>H-B-(y-y0)/(y1-y0)*(H-B-T);
+  const tick=(a,b,n)=>{const s=Math.pow(10,Math.floor(Math.log10((b-a)/n))),m=[1,2,5,10].find(k=>(b-a)/(s*k)<=n)*s,r=[];for(let v=Math.ceil(a/m)*m;v<=b+1e-9;v+=m)r.push(+v.toFixed(10));return r;};
+  c.strokeStyle=C.grid;c.fillStyle=C.mut;c.font="11px system-ui";c.lineWidth=1;
+  tick(y0,y1,5).forEach(v=>{c.beginPath();c.moveTo(L,Y(v));c.lineTo(W-R,Y(v));c.stroke();c.fillText(v,2,Y(v)+4);});
+  tick(x0,x1,o.nx??6).forEach(v=>{c.beginPath();c.moveTo(X(v),T);c.lineTo(X(v),H-B);c.stroke();c.fillText(v,X(v)-8,H-6);});
+  if(y0<0&&y1>0){c.strokeStyle=C.axis;c.beginPath();c.moveTo(L,Y(0));c.lineTo(W-R,Y(0));c.stroke();}
+  if(o.xl)c.fillText(o.xl,W-R-c.measureText(o.xl).width,H-B-6);
+  return {X,Y};
+}
+function curve(c,X,Y,fn,a,b,col,w=2,n=400,dash){c.strokeStyle=col;c.lineWidth=w;c.setLineDash(dash||[]);c.beginPath();let up=false;for(let i=0;i<=n;i++){const x=a+(b-a)*i/n,y=fn(x);if(!isFinite(y)){up=false;continue;}up?c.lineTo(X(x),Y(y)):c.moveTo(X(x),Y(y));up=true;}c.stroke();c.setLineDash([]);}
+function plane(c,W,H,r,x0=0){ // a square x-y plane of half-width r, centred in [x0, W]; returns P(x,y) → pixel
+  const w=W-x0,s=Math.min(w,H)/2/r*0.92,ox=x0+w/2,oy=H/2,P=(x,y)=>[ox+x*s,oy-y*s];
+  c.strokeStyle=C.grid;c.lineWidth=1;for(let k=-Math.floor(r);k<=r;k++){c.beginPath();c.moveTo(...P(k,-r));c.lineTo(...P(k,r));c.moveTo(...P(-r,k));c.lineTo(...P(r,k));c.stroke();}
+  c.strokeStyle=C.axis;c.beginPath();c.moveTo(...P(-r,0));c.lineTo(...P(r,0));c.moveTo(...P(0,-r));c.lineTo(...P(0,r));c.stroke();
+  return {P,s};
+}
+function gridUnder(c,P,M,r,col){ // the integer grid after the map M
+  c.strokeStyle=col;c.lineWidth=1;c.globalAlpha=.45;
+  for(let k=-r;k<=r;k++){c.beginPath();c.moveTo(...P(...apply(M,[k,-r])));c.lineTo(...P(...apply(M,[k,r])));c.moveTo(...P(...apply(M,[-r,k])));c.lineTo(...P(...apply(M,[r,k])));c.stroke();}
+  c.globalAlpha=1;
+}
+function poly(c,pts,col,alpha=.25){c.beginPath();pts.forEach((p,i)=>i?c.lineTo(...p):c.moveTo(...p));c.closePath();c.globalAlpha=alpha;c.fillStyle=col;c.fill();c.globalAlpha=1;c.strokeStyle=col;c.lineWidth=2;c.stroke();}
+function arrow(c,a,b,col,w=2.5){c.strokeStyle=col;c.fillStyle=col;c.lineWidth=w;c.beginPath();c.moveTo(...a);c.lineTo(...b);c.stroke();const an=Math.atan2(b[1]-a[1],b[0]-a[0]),L=Math.min(9,Math.hypot(b[0]-a[0],b[1]-a[1])*.5);c.beginPath();c.moveTo(...b);c.lineTo(b[0]-L*Math.cos(an-.45),b[1]-L*Math.sin(an-.45));c.lineTo(b[0]-L*Math.cos(an+.45),b[1]-L*Math.sin(an+.45));c.fill();}
+function dot(c,p,col,r=5){c.beginPath();c.arc(p[0],p[1],r,0,7);c.fillStyle=col;c.fill();}
+function label(c,p,text,col,dx=6,dy=-6){c.fillStyle=col;c.font="12px system-ui";c.fillText(text,p[0]+dx,p[1]+dy);}
+function matrix(c,x,y,cell,M,hl,name){ // M drawn as a grid of numbers; hl(i,j) → colour or null
+  c.font=Math.round(cell*.36)+"px system-ui";c.textAlign="center";c.textBaseline="middle";
+  M.forEach((r,i)=>r.forEach((v,j)=>{const h=hl&&hl(i,j);if(h){c.globalAlpha=.22;c.fillStyle=h;c.fillRect(x+j*cell,y+i*cell,cell,cell);c.globalAlpha=1;}
+    c.fillStyle=h||C.ink;c.fillText(f(v,Number.isInteger(v)?0:1),x+j*cell+cell/2,y+i*cell+cell/2);}));
+  c.strokeStyle=C.mut;c.lineWidth=1.5;const w=M[0].length*cell,h=M.length*cell;c.beginPath();c.moveTo(x+6,y);c.lineTo(x,y);c.lineTo(x,y+h);c.lineTo(x+6,y+h);c.moveTo(x+w-6,y);c.lineTo(x+w,y);c.lineTo(x+w,y+h);c.lineTo(x+w-6,y+h);c.stroke();
+  if(name){c.fillStyle=C.mut;c.font="13px system-ui";c.fillText(name,x+w/2,y-12);}
+  c.textAlign="start";c.textBaseline="alphabetic";
+}
+const sq=[[0,0],[1,0],[1,1],[0,1]];
+
+// ================= 4. THE STEPS =================
+// {k: kicker, t: title, f: formula, n: one plain sentence or two,
+//  c: [[key,label,min,max,step,default]], btn?: [[label, v => {set values}]],
+//  draw(c,W,H,v) → the result line (html), from the same numbers the picture used}
+const STEPS=[
+{ k:"Start here", t:"One row times one arrow", f:"(a, b) · (x, y) = a·x + b·y",
+  n:"The smallest piece of matrix multiplication: one row of two numbers against one arrow. Multiply in pairs and add. The bar under the plane shows the two products and their sum.",
+  c:[["a","a",-3,3,.1,2],["b","b",-3,3,.1,1],["x","x",-3,3,.1,1],["y","y",-3,3,.1,2]],
+  draw(c,W,H,v){const {P}=plane(c,W,H-44,3.4);arrow(c,P(0,0),P(v.a,v.b),C.b);label(c,P(v.a,v.b),"row (a, b)",C.b);arrow(c,P(0,0),P(v.x,v.y),C.a);label(c,P(v.x,v.y),"arrow (x, y)",C.a);
+    const p1=v.a*v.x,p2=v.b*v.y,s=p1+p2,lim=Math.max(9,Math.abs(p1)+Math.abs(p2)),bx=x=>W/2+x/lim*(W/2-20),by=H-30;
+    c.globalAlpha=.8;c.fillStyle=C.c;c.fillRect(Math.min(bx(0),bx(p1)),by,Math.abs(bx(p1)-bx(0)),10);c.fillStyle=C.d;c.fillRect(Math.min(bx(p1),bx(s)),by+12,Math.abs(bx(s)-bx(p1)),10);c.globalAlpha=1;
+    c.strokeStyle=C.axis;c.beginPath();c.moveTo(bx(0),by-4);c.lineTo(bx(0),by+26);c.stroke();dot(c,[bx(s),by+11],C.ink,4);
+    return "<span style='color:var(--c)'>a·x = "+f(v.a,1)+"·"+f(v.x,1)+" = "+f(p1)+"</span> + <span style='color:var(--d)'>b·y = "+f(v.b,1)+"·"+f(v.y,1)+" = "+f(p2)+"</span> = <b>"+f(s)+"</b>";}},
+{ k:"Add a row", t:"Two rows: a 2×2 matrix moves an arrow", f:"[a b; c d] · (x, y) = (a·x + b·y,  c·x + d·y)",
+  n:"Stack a second row. Each row gives one number, so two rows give a new arrow. The matrix takes the gold arrow to the pink one.",
+  c:[["a","a",-2,2,.1,1],["b","b",-2,2,.1,-1],["c","c",-2,2,.1,1],["d","d",-2,2,.1,1],["x","x",-2,2,.1,1],["y","y",-2,2,.1,.5]],
+  draw(c,W,H,v){const M=[[v.a,v.b],[v.c,v.d]],u=apply(M,[v.x,v.y]),r=Math.max(3,Math.abs(u[0])+.6,Math.abs(u[1])+.6);const {P}=plane(c,W,H,r);
+    arrow(c,P(0,0),P(v.x,v.y),C.a);label(c,P(v.x,v.y),"v",C.a);arrow(c,P(0,0),P(...u),C.c);label(c,P(...u),"M·v",C.c);
+    return "row 1: "+f(v.a,1)+"·"+f(v.x,1)+" + "+f(v.b,1)+"·"+f(v.y,1)+" = "+f(u[0])+" · row 2: "+f(v.c,1)+"·"+f(v.x,1)+" + "+f(v.d,1)+"·"+f(v.y,1)+" = "+f(u[1])+" → M·v = <b>"+fv(u)+"</b>";}},
+{ k:"See the whole map", t:"The columns are where the axes land", f:"M·(1, 0) = (a, c),   M·(0, 1) = (b, d)",
+  n:"Do not move one arrow: move the whole plane. The first column is where (1, 0) goes, the second is where (0, 1) goes. The rest of the grid follows, and the unit square becomes the shaded shape.",
+  c:[["a","a",-2,2,.1,1],["b","b",-2,2,.1,.5],["c","c",-2,2,.1,0],["d","d",-2,2,.1,1]],
+  btn:[["identity",v=>{v.a=1;v.b=0;v.c=0;v.d=1;}],["rotate 90°",v=>{v.a=0;v.b=-1;v.c=1;v.d=0;}],["shear",v=>{v.a=1;v.b=1;v.c=0;v.d=1;}],["squash to a line",v=>{v.a=1;v.b=2;v.c=.5;v.d=1;}]],
+  draw(c,W,H,v){const M=[[v.a,v.b],[v.c,v.d]];const {P}=plane(c,W,H,3.2);gridUnder(c,P,M,3,C.b);poly(c,sq.map(p=>P(...apply(M,p))),C.b,.2);
+    arrow(c,P(0,0),P(v.a,v.c),C.a);label(c,P(v.a,v.c),"(a, c)",C.a);arrow(c,P(0,0),P(v.b,v.d),C.d);label(c,P(v.b,v.d),"(b, d)",C.d);
+    return "<span style='color:var(--a)'>(1, 0) → "+fv([v.a,v.c])+"</span> · <span style='color:var(--d)'>(0, 1) → "+fv([v.b,v.d])+"</span> · M = <b>"+fm(M)+"</b>";}},
+{ k:"Add a matrix", t:"Two matrices: first B, then A", f:"(A·B)·v = A·(B·v)",
+  n:"B shears the square (blue), then A turns it (pink). The product AB is one matrix that does both moves at once. Its columns are where the two moves send (1, 0) and (0, 1).",
+  c:[["k","B: shear k",-2,2,.1,1],["th","A: turn θ°",-180,180,1,45]],
+  draw(c,W,H,v){const A=rot(v.th),B=shear(v.k),AB=mul(A,B);const {P}=plane(c,W,H,3);poly(c,sq.map(p=>P(...p)),C.mut,.08);poly(c,sq.map(p=>P(...apply(B,p))),C.b,.18);poly(c,sq.map(p=>P(...apply(AB,p))),C.c,.25);
+    label(c,P(...apply(B,[1,1])),"B·square",C.b);label(c,P(...apply(AB,[1,1])),"AB·square",C.c);
+    return "B = "+fm(B)+" · A = "+fm(A)+" · <b>AB = "+fm(AB)+"</b>";}},
+{ k:"Look inside", t:"Each entry: a row of A against a column of B", f:"(AB)ᵢⱼ = aᵢ₁·b₁ⱼ + aᵢ₂·b₂ⱼ",
+  n:"Every number of AB is step 1 again: one row of A against one column of B. Choose the entry with i and j and watch which row and which column it uses.",
+  c:[["i","row i",1,2,1,1],["j","column j",1,2,1,2]],
+  draw(c,W,H,v){const A=[[1,2],[3,4]],B=[[5,6],[7,8]],AB=mul(A,B),i=v.i-1,j=v.j-1,cell=Math.min(60,(W-40)/8),y=H/2-cell,x0=(W-8*cell)/2;
+    matrix(c,x0,y,cell,A,(r)=>r===i?C.a:null,"A");c.fillStyle=C.mut;c.font=Math.round(cell*.5)+"px system-ui";c.textAlign="center";c.fillText("·",x0+cell*2.5,y+cell+8);
+    c.fillText("=",x0+cell*5.5,y+cell+8);c.textAlign="start";matrix(c,x0+cell*3,y,cell,B,(_,col)=>col===j?C.b:null,"B");
+    matrix(c,x0+cell*6,y,cell,AB,(r,col)=>r===i&&col===j?C.c:null,"AB");
+    return "(AB)<sub>"+v.i+v.j+"</sub> = <span style='color:var(--a)'>"+A[i][0]+"</span>·<span style='color:var(--b)'>"+B[0][j]+"</span> + <span style='color:var(--a)'>"+A[i][1]+"</span>·<span style='color:var(--b)'>"+B[1][j]+"</span> = <b>"+AB[i][j]+"</b>";}},
+{ k:"Swap them", t:"Order matters: AB is not BA", f:"A·B ≠ B·A   (in general)",
+  n:"Shear then turn (pink) does not land where turn then shear (green) lands. Find the settings where the two shapes agree: a turn of 0° or 180°, or no shear.",
+  c:[["k","shear k",-2,2,.1,1],["th","turn θ°",-180,180,1,45]],
+  btn:[["θ = 0°",v=>{v.th=0;}],["θ = 180°",v=>{v.th=180;}],["k = 0",v=>{v.k=0;}]],
+  draw(c,W,H,v){const A=rot(v.th),B=shear(v.k),AB=mul(A,B),BA=mul(B,A),eq=same(AB,BA,1e-6);const {P}=plane(c,W,H,3);poly(c,sq.map(p=>P(...p)),C.mut,.08);
+    poly(c,sq.map(p=>P(...apply(AB,p))),C.c,.25);poly(c,sq.map(p=>P(...apply(BA,p))),C.d,.2);
+    return "AB = "+fm(AB)+" · BA = "+fm(BA)+" → <b>"+(eq?"the same":"different")+"</b>";}},
+{ k:"Measure it", t:"The area: the determinant", f:"det M = a·d − b·c,   det(AB) = det A · det B",
+  n:"The unit square has area 1. After M its area is |ad − bc|. A negative sign means the square was flipped (blue to pink). At 0 the plane is squashed onto a line, and nothing can undo it.",
+  c:[["a","a",-2,2,.1,1.5],["b","b",-2,2,.1,.5],["c","c",-2,2,.1,.3],["d","d",-2,2,.1,1]],
+  btn:[["flip",v=>{v.a=0;v.b=1;v.c=1;v.d=0;}],["area 0",v=>{v.a=1;v.b=2;v.c=.5;v.d=1;}]],
+  draw(c,W,H,v){const M=[[v.a,v.b],[v.c,v.d]],D=det2(M);const {P}=plane(c,W,H,3.2);gridUnder(c,P,M,3,C.b);poly(c,sq.map(p=>P(...apply(M,p))),D<0?C.c:C.b,.3);
+    return "det M = "+f(v.a,1)+"·"+f(v.d,1)+" − "+f(v.b,1)+"·"+f(v.c,1)+" = <b>"+f(D,3)+"</b> · area "+f(Math.abs(D),3)+" · "+(Math.abs(D)<1e-9?"squashed: no inverse":D<0?"flipped":"orientation kept");}},
+{ k:"The general case", t:"Any size: n × n", f:"(AB)ᵢⱼ = Σₖ aᵢₖ·bₖⱼ ,   k = 1 … n",
+  n:"Nothing new, only longer rows: an n×n entry is a row of n numbers against a column of n numbers. There are n² entries, each with n products, so n³ multiplications in all.",
+  c:[["n","size n",2,7,1,3],["i","row i",1,7,1,1],["j","column j",1,7,1,1]],
+  draw(c,W,H,v){const n=v.n|0,i=Math.min(v.i,n)-1,j=Math.min(v.j,n)-1,A=bigA(n),B=bigB(n),AB=mul(A,B),cell=Math.min(40,(W-40)/(3*n+2),(H-50)/n),y=(H-n*cell)/2+8,x0=(W-(3*n+2)*cell)/2;
+    matrix(c,x0,y,cell,A,r=>r===i?C.a:null,"A");matrix(c,x0+cell*(n+1),y,cell,B,(_,col)=>col===j?C.b:null,"B");matrix(c,x0+cell*(2*n+2),y,cell,AB,(r,col)=>r===i&&col===j?C.c:null,"AB");
+    const terms=A[i].map((a,k)=>a+"·"+B[k][j]);
+    return "(AB)<sub>"+(i+1)+","+(j+1)+"</sub> = "+terms.join(" + ")+" = <b>"+AB[i][j]+"</b> · "+n+"³ = "+n**3+" multiplications for the whole product";}},
+];
+
+// ================= 5. THE STEPPER: leave as it is =================
+if(typeof globalThis!=="undefined")globalThis.__UFP__={STEPS,CHECKS,readTheme:()=>readTheme(root)};
+const root=document.querySelector('[data-ufp="matrix"]'),q=s=>root.querySelector(s),top_=q(".ufp-top"),wrap=q(".ufp-w"),cv=q("canvas"),ctx=cv.getContext("2d"),cc=q(".ufp-c"),xb=q(".ufp-x"),out=q(".ufp-r"),pv=q(".pv"),nx=q(".nx");
+function readTheme(el){const s=getComputedStyle(el),g=k=>s.getPropertyValue("--"+k).trim();C={ink:g("ink"),mut:g("mut"),grid:g("grid"),axis:g("axis"),a:g("a"),b:g("b"),c:g("c"),d:g("d")};}
+let cur=0;const vals=STEPS.map(s=>Object.fromEntries(s.c.map(([k,,,,,d])=>[k,d])));
+const fmt=(x,st)=>st>=1?String(x):(+x).toFixed(st<.01?3:st<.1?2:1);
+STEPS.forEach((s,i)=>{const b=document.createElement("button");b.type="button";b.textContent=i+1;b.title=s.t;b.onclick=()=>show(i);top_.append(b);});
+function draw(){const d=devicePixelRatio||1,W=wrap.clientWidth,H=wrap.clientHeight;if(!W)return;readTheme(root);cv.width=W*d;cv.height=H*d;ctx.setTransform(d,0,0,d,0,0);ctx.clearRect(0,0,W,H);
+  try{out.innerHTML=STEPS[cur].draw(ctx,W,H,vals[cur])||"";}catch(e){out.textContent="Could not draw: "+e.message;}}
+function show(i){cur=Math.max(0,Math.min(STEPS.length-1,i));const s=STEPS[cur],v=vals[cur],inputs={};
+  top_.querySelectorAll("button").forEach((b,k)=>{b.className=k===cur?"on":k<cur?"done":"";});
+  q(".ufp-k").textContent="Step "+(cur+1)+" of "+STEPS.length+" · "+s.k;q("h4").textContent=s.t;q(".ufp-f").textContent=s.f;q(".ufp-n").innerHTML=s.n;
+  cc.innerHTML="";s.c.forEach(([k,lab,a,b,st])=>{const l=document.createElement("label"),r=document.createElement("input"),o=document.createElement("b");l.textContent=lab+" ";
+    Object.assign(r,{type:"range",min:a,max:b,step:st,value:v[k]});o.textContent=fmt(v[k],st);r.oninput=()=>{v[k]=+r.value;o.textContent=fmt(v[k],st);draw();};inputs[k]=[r,o,st];l.append(r,o);cc.append(l);});
+  xb.innerHTML="";(s.btn||[]).forEach(([lab,fn])=>{const b=document.createElement("button");b.type="button";b.textContent=lab;b.onclick=()=>{fn(v);Object.entries(inputs).forEach(([k,[r,o,st]])=>{r.value=v[k];o.textContent=fmt(v[k],st);});draw();};xb.append(b);});
+  pv.style.visibility=cur?"visible":"hidden";nx.style.visibility=cur<STEPS.length-1?"visible":"hidden";draw();}
+pv.onclick=()=>show(cur-1);nx.onclick=()=>show(cur+1);
+root.addEventListener("keydown",e=>{if(e.target.tagName==="INPUT")return;if(e.key==="ArrowRight")show(cur+1);if(e.key==="ArrowLeft")show(cur-1);});
+if(typeof ResizeObserver!=="undefined")new ResizeObserver(draw).observe(wrap);
+if(typeof matchMedia!=="undefined")matchMedia("(prefers-color-scheme: dark)").addEventListener?.("change",draw);
+show(0);
+})();
+</script>

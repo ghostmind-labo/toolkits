@@ -26,6 +26,7 @@ Or from inside a session: `/plugin marketplace add ghostmind-labo/toolkits`, the
 | skill | [`agent-channel-read`](./skills/agent-channel-read) | Read, claim and watch messages that other Claude sessions left on the Potion `agent-channel` |
 | skill | [`agent-channel-write`](./skills/agent-channel-write) | Send a self-contained message to a Claude session in another project through the Potion `agent-channel` |
 | skill | [`understand`](./skills/understand) | Explain something in the format that is easiest to take in: Simplified Technical English, a diagram, an HTML page, or a narrated explainer video |
+| skill | [`unit-first`](./skills/unit-first) | Explain an equation from its smallest working example up, one change per step, as a live HTML playground computed from the real math |
 | skill | [`muse`](./skills/muse) | Make any piece of work with one influential figure from a random era at its core: their method, not their trademarks |
 | skill | [`evolve`](./skills/evolve) | Get the best result for a goal by evolving the brief: variants run on fresh agents, the results are judged, the winner is tweaked and run again |
 | skill | [`android`](./skills/android) | Android on the Mac without Android Studio: Java 17, the SDK, a virtual phone, and adb as an agent's eyes and hands (screenshots, taps, the element tree, logs), with the traps met setting it up |
@@ -213,6 +214,24 @@ cairo library (`brew install cairo`). The voice is ElevenLabs through
 OpenRouter when `OPENROUTER_API_KEY` is set, and the free macOS `say` voice otherwise.
 
 > *"Explain this diff in STE"* · *"Draw me a diagram of the auth flow"* · *"Explain this as a web page"* · *"Make a 3b1b style video on binary search"*
+
+### unit-first
+
+Explains an equation or a scientific concept the way it is easiest to grasp: start from the
+smallest case that already shows the idea (two terms of a series, one arrow, a 2×2 matrix),
+pull out any simpler function hidden inside, then change exactly one thing per step until the
+general statement comes last. Each step shows the formula, a plain sentence, a picture
+computed from the real math, a slider for the thing that changed, and the computed numbers.
+
+The usual output is a step-by-step HTML playground. `assets/playground.html` is the template
+and a worked example (matrix multiplication from 2×2 to n×n); `scripts/check.mjs` checks a
+playground with Node and no browser: it runs the known values in `CHECKS`, then draws every
+step at its defaults, its limits and its buttons, and fails on a throw or a NaN. When the
+playground goes into a Potion note, the `potion-blocks` skill places it.
+
+**Prerequisites:** Node, to run the check.
+
+> *"Help me understand matrix multiplication, start with a 2x2"* · *"Explain the Fourier transform starting simple"* · *"Walk me up to Bayes' rule step by step"*
 
 ### muse
 
