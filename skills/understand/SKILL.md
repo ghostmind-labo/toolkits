@@ -41,6 +41,10 @@ How to choose when the user did not:
 - The understanding is in the motion (an algorithm that runs, a transformation, a build-up):
   rung 4. Say what it will cost in time before starting, since it is the slow one.
 
+When the subject is an equation, a formula or a scientific concept, use the `unit-first`
+skill for the content: it starts from the smallest working example and climbs one change at a
+time, usually as a rung 3 playground.
+
 Before making rungs 2 to 4, be sure of the content. A beautiful page that explains the thing
 wrongly is worse than plain text. Read the code or the source first, then pick the two or three
 ideas the reader must leave with, and build only around those.
